@@ -1,0 +1,717 @@
+@import "tailwindcss";
+
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(97.5% 0.016 86);
+  --foreground: oklch(28% 0.06 179);
+  --card: oklch(98.8% 0.012 88);
+  --card-foreground: oklch(28% 0.06 179);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(12.9% 0.042 264.695);
+  --primary: oklch(35% 0.072 178);
+  --primary-foreground: oklch(98.5% 0.014 88);
+  --secondary: oklch(96.8% 0.007 247.896);
+  --secondary-foreground: oklch(20.8% 0.042 265.755);
+  --muted: oklch(94% 0.025 91);
+  --muted-foreground: oklch(48% 0.04 174);
+  --accent: oklch(74% 0.095 79);
+  --accent-foreground: oklch(24% 0.05 178);
+  --destructive: oklch(57.7% 0.245 27.325);
+  --destructive-foreground: oklch(98.4% 0.003 247.858);
+  --border: oklch(74% 0.08 83 / 0.52);
+  --input: oklch(74% 0.08 83 / 0.52);
+  --ring: oklch(58% 0.09 80);
+  --gold: oklch(68% 0.105 78);
+  --cream-deep: oklch(94% 0.027 86);
+  --rose: oklch(68% 0.12 31);
+  --seal: oklch(91% 0.025 88);
+  --seal-foreground: oklch(52% 0.08 78);
+  --burgundy: oklch(30% 0.115 7);
+  --burgundy-deep: oklch(23.5% 0.09 8);
+  --burgundy-light: oklch(39% 0.12 7);
+  --shadow-gold: 0 9px 25px rgba(212, 175, 55, 0.2);
+  --shadow-gold-hover: 0 12px 32px rgba(212, 175, 55, 0.32);
+  --shadow-seal: 0 7px 18px rgba(35, 15, 15, 0.45), inset 0 0 0 4px rgba(212, 175, 55, 0.22);
+  --font-display: "Italianno", cursive;
+  --font-body: "Cormorant Garamond", serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@keyframes invitation-reveal {
+0%{opacity:0;transform:scale(.985)translateY(12px)}to{opacity:1;transform:none}
+}
+
+@keyframes lantern-drift {
+0%,to{transform:translateY(0)rotate(-.7deg)}50%{transform:translateY(7px)rotate(.7deg)}
+}
+
+@keyframes petal-fall {
+0%{opacity:0;transform:translateY(-12vh)rotate(0)}12%{opacity:.42}to{opacity:0;transform:translate(35px,112vh)rotate(300deg)}
+}
+
+@keyframes seal-awaken {
+0%,to{box-shadow:var(--shadow-seal), 0 0 0 0 color-mix(in oklab, var(--gold) 0%, transparent)}48%{box-shadow:var(--shadow-seal), 0 0 24px 9px color-mix(in oklab, var(--gold) 48%, transparent)}
+}
+
+@keyframes seal-burst {
+0%{opacity:0;transform:translate(-50%,-50%)scale(.35)}32%{opacity:.9}to{opacity:0;transform:translate(-50%,-50%)scale(5)}
+}
+
+@keyframes light-sweep {
+0%{opacity:0;transform:translate(-175%)rotate(18deg)}25%{opacity:.85}to{opacity:0;transform:translate(240%)rotate(18deg)}
+}
+
+@keyframes butterfly-flight-one {
+0%{opacity:0;transform:translate(-16vw,18vh)rotate(-10deg)scale(.72)}12%{opacity:.75}38%{transform:translate(28vw,7vh)rotate(9deg)scale(1)}68%{transform:translate(62vw,28vh)rotate(-7deg)scale(.82)}to{opacity:0;transform:translate(112vw,9vh)rotate(8deg)scale(.62)}
+}
+
+@keyframes butterfly-flight-two {
+0%{opacity:0;transform:translate(108vw,62vh)rotate(8deg)scale(.55)}15%{opacity:.55}48%{transform:translate(55vw,47vh)rotate(-11deg)scale(.8)}78%{transform:translate(18vw,67vh)rotate(5deg)scale(.65)}to{opacity:0;transform:translate(-12vw,50vh)rotate(-8deg)scale(.5)}
+}
+
+@keyframes butterfly-flight-three {
+0%,to{opacity:.32;transform:translate(12vw,72vh)rotate(-8deg)scale(.52)}50%{opacity:.62;transform:translate(22vw,52vh)rotate(12deg)scale(.68)}
+}
+
+@keyframes wing-left {
+0%{transform:rotateY(18deg)rotate(-25deg)}to{transform:rotateY(72deg)rotate(-8deg)}
+}
+
+@keyframes wing-right {
+0%{transform:scaleX(-1)rotateY(18deg)rotate(-25deg)}to{transform:scaleX(-1)rotateY(72deg)rotate(-8deg)}
+}
+
+@keyframes floral-breathe {
+0%,to{transform:rotate(0)scale(1)}50%{transform:rotate(1.5deg)scale(1.025)}
+}
+
+@keyframes floral-breathe-reverse {
+0%,to{transform:rotate(180deg)scale(1)}50%{transform:rotate(178.5deg)scale(1.025)}
+}
+
+
+/* Lovable Exact Invitation Styles */
+
+.invitation-site {
+  background:var(--background);min-height:100vh;color:var(--foreground);overflow:clip
+}
+
+.opening-screen {
+  isolation:isolate;background:radial-gradient(ellipse at 50% 42%, var(--burgundy-light), var(--burgundy-deep) 72%);perspective:1200px;place-items:center;min-height:100svh;padding:22px 14px;transition:opacity .8s,max-height .9s,padding .9s;display:grid;position:relative
+}
+
+.opening-screen:after {
+  content:"";z-index:-1;background-image:radial-gradient(circle at 25% 20%, var(--gold) 0 1px, transparent 1.5px), radial-gradient(circle at 75% 70%, var(--card) 0 1px, transparent 1.5px);position:absolute;inset:0
+}
+
+.opening-screen:after {
+  background-image:radial-gradient(circle at 25% 20%, color-mix(in oklab, var(--gold) 12%, transparent) 0 1px, transparent 1.5px), radial-gradient(circle at 75% 70%, color-mix(in oklab, var(--card) 8%, transparent) 0 1px, transparent 1.5px)
+}
+
+.opening-screen:after {
+  opacity:.65;background-size:31px 31px,43px 43px
+}
+
+.is-open .opening-screen {
+  opacity:0;pointer-events:none;min-height:0;max-height:0;padding-block:0;overflow:hidden
+}
+
+.envelope-stage {
+  z-index:5;text-align:center;width:min(90vw,560px);position:relative
+}
+
+.envelope-title {
+  color:var(--seal);text-shadow:0 2px 20px var(--burgundy-deep);margin-bottom:clamp(44px,9vh,82px);transition:opacity .55s,transform .65s
+}
+
+.envelope-title {
+  text-shadow:0 2px 20px color-mix(in oklab, var(--burgundy-deep) 70%, transparent)
+}
+
+.envelope-title p {
+  font-size:1.2rem;font-weight:600
+}
+
+.envelope-title span {
+  font-size:.86rem;font-style:italic;display:block
+}
+
+.envelope {
+  aspect-ratio:1.28;width:100%;filter:drop-shadow(0 24px 28px var(--burgundy-deep));position:relative
+}
+
+.envelope {
+  filter:drop-shadow(0 24px 28px color-mix(in oklab, var(--burgundy-deep) 28%, transparent))
+}
+
+.envelope {
+  transform-style:preserve-3d;transition:transform .8s cubic-bezier(.22,.8,.2,1)
+}
+
+.envelope-back {
+  background:var(--burgundy);box-shadow:inset 0 0 45px var(--burgundy-deep);border-radius:5px;position:absolute;inset:0
+}
+
+.envelope-back {
+  box-shadow:inset 0 0 45px color-mix(in oklab, var(--burgundy-deep) 45%, transparent)
+}
+
+.envelope-back:before {
+  content:"";border:1px solid var(--gold);position:absolute;inset:12px
+}
+
+.envelope-back:before {
+  border:1px solid color-mix(in oklab, var(--gold) 26%, transparent)
+}
+
+.envelope-back:before {
+  opacity:.5
+}
+
+.envelope-left,.envelope-right,.envelope-bottom,.envelope-flap {
+  position:absolute;inset:0
+}
+
+.envelope-left {
+  clip-path:polygon(0 0,55% 52%,0 100%);background:var(--burgundy-light)
+}
+
+.envelope-right {
+  clip-path:polygon(100% 0,45% 52%,100% 100%);background:var(--burgundy)
+}
+
+.envelope-bottom {
+  clip-path:polygon(0 100%,50% 43%,100% 100%);background:var(--burgundy-light);box-shadow:inset 0 -20px 40px var(--burgundy-deep)
+}
+
+.envelope-bottom {
+  box-shadow:inset 0 -20px 40px color-mix(in oklab, var(--burgundy-deep) 38%, transparent)
+}
+
+.envelope-flap {
+  z-index:4;clip-path:polygon(0 0,100% 0,50% 58%);background:linear-gradient(165deg, var(--burgundy-light), var(--burgundy-deep));transform-origin:top;transition:transform .8s cubic-bezier(.4,0,.2,1),z-index 0s .35s
+}
+
+.envelope-flap:after {
+  content:"";clip-path:polygon(0 0,100% 0,50% 58%);border-top:1px solid var(--gold);position:absolute;inset:12px
+}
+
+.envelope-flap:after {
+  border-top:1px solid color-mix(in oklab, var(--gold) 45%, transparent)
+}
+
+.envelope-paper {
+  z-index:1;background:var(--card);border:1px solid var(--gold);height:82%;color:var(--foreground);flex-direction:column;justify-content:center;align-items:center;gap:10px;transition:transform .85s cubic-bezier(.22,.8,.2,1) .3s;display:flex;position:absolute;top:8%;left:7%;right:7%
+}
+
+.envelope-paper span {
+  text-transform:uppercase;letter-spacing:.15em;font-size:.8rem
+}
+
+.envelope-paper strong {
+  font-family:var(--font-display);font-size:clamp(2.2rem,10vw,4rem);font-weight:400
+}
+
+.envelope-paper i {
+  color:var(--gold);font-weight:400
+}
+
+.envelope-paper small {
+  letter-spacing:.18em
+}
+
+.wax-seal {
+  z-index:7;border:1px solid var(--gold);position:absolute;top:51%;left:50%;overflow:hidden;transform:translate(-50%,-50%)
+}
+
+.wax-seal {
+  border:1px solid color-mix(in oklab, var(--gold) 55%, transparent)
+}
+
+.wax-seal {
+  transition:opacity .35s 1s,transform .35s 1s;animation:3.4s ease-in-out infinite seal-awaken
+}
+
+.wax-seal:before {
+  content:"";background:linear-gradient(105deg, transparent 38%, var(--card) 49%, transparent 60%);position:absolute;inset:-45%
+}
+
+.wax-seal:before {
+  background:linear-gradient(105deg, transparent 38%, color-mix(in oklab, var(--card) 72%, transparent) 49%, transparent 60%)
+}
+
+.wax-seal:before {
+  transform:translate(-170%)rotate(18deg)
+}
+
+.wax-seal:after {
+  content:"";border:1px solid var(--gold);opacity:0;border-radius:50%;width:78px;height:78px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)
+}
+
+.wax-seal:hover {
+  transform:translate(-50%,-50%)scale(1.06)
+}
+
+.wax-seal span {
+  color:var(--gold);margin-inline:-3px;font-size:.7em
+}
+
+.envelope-emboss {
+  z-index:5;color:var(--gold);position:absolute;top:57%
+}
+
+.envelope-emboss {
+  color:color-mix(in oklab, var(--gold) 27%, transparent)
+}
+
+.envelope-emboss {
+  text-shadow:1px 1px var(--burgundy-deep);font-size:clamp(3rem,13vw,5.5rem)
+}
+
+.envelope-emboss {
+  text-shadow:1px 1px color-mix(in oklab, var(--burgundy-deep) 55%, transparent)
+}
+
+.emboss-left {
+  left:8%;transform:rotate(-24deg)
+}
+
+.emboss-right {
+  right:8%;transform:scaleX(-1)rotate(-24deg)
+}
+
+.tap-instruction {
+  color:var(--seal);text-transform:uppercase;letter-spacing:.14em;align-items:center;gap:8px;margin-top:34px;font-size:.78rem;display:inline-flex
+}
+
+.tap-instruction svg {
+  width:14px
+}
+
+.is-opening .envelope-title,.is-opening .tap-instruction {
+  opacity:0;transform:translateY(-10px)
+}
+
+.is-opening .wax-seal {
+  opacity:0;transform:translate(-50%,-50%)scale(.7)
+}
+
+.is-opening .wax-seal:before {
+  animation:.65s ease-out both light-sweep
+}
+
+.is-opening .wax-seal:after {
+  animation:.9s ease-out both seal-burst
+}
+
+.is-opening .envelope-flap {
+  z-index:0;transition-delay:.7s,1.05s;transform:rotateX(178deg)
+}
+
+.is-opening .envelope-paper {
+  transition-delay:1.18s;transform:translateY(-58%)
+}
+
+.is-opening .envelope {
+  transition-delay:.65s;transform:translateY(11vh)scale(1.045)
+}
+
+.opening-inner,.invitation-card {
+  background-color:var(--card);background-image:radial-gradient(circle at 20% 10%, var(--gold) 0 1px, transparent 1.5px), radial-gradient(circle at 80% 65%, var(--primary) 0 1px, transparent 1.5px);width:min(100%,720px);position:relative;overflow:hidden
+}
+
+.opening-inner,.invitation-card {
+  background-image:radial-gradient(circle at 20% 10%, color-mix(in oklab, var(--gold) 7%, transparent) 0 1px, transparent 1.5px), radial-gradient(circle at 80% 65%, color-mix(in oklab, var(--primary) 5%, transparent) 0 1px, transparent 1.5px)
+}
+
+.opening-inner,.invitation-card {
+  border:1px solid var(--border);box-shadow:0 20px 70px var(--foreground);background-size:24px 24px,31px 31px
+}
+
+.opening-inner,.invitation-card {
+  box-shadow:0 20px 70px color-mix(in oklab, var(--foreground) 13%, transparent)
+}
+
+.blessing {
+  font-size:1.15rem;font-weight:600;line-height:1.25
+}
+
+.blessing small {
+  font-size:.87rem;font-style:italic;font-weight:500
+}
+
+.couple-name,.names h1 {
+  font-family:var(--font-display);font-size:clamp(3.5rem,17vw,6.5rem);line-height:.82
+}
+
+.weds-seal {
+  border:1px solid var(--gold);width:55px;height:55px;color:var(--gold);font-family:var(--font-display);border-radius:50%;place-items:center;margin:12px auto;font-size:1.75rem;display:grid;position:relative
+}
+
+.ornament {
+  width:min(230px,65vw);color:var(--gold);align-items:center;gap:10px;margin:22px auto;display:flex
+}
+
+.ornament span {
+  background:var(--gold);flex:1;height:1px
+}
+
+.ornament b {
+  font-size:.6rem
+}
+
+.opening-lanterns,.card-lanterns {
+  z-index:2;width:285px;height:auto;animation:7s ease-in-out infinite lantern-drift;position:absolute;top:-25px;right:-80px
+}
+
+.floral-corner {
+  z-index:2;pointer-events:none;width:min(58vw,390px);height:auto;position:absolute
+}
+
+.floral-corner-top {
+  transform-origin:0 0;animation:8s ease-in-out infinite floral-breathe;top:-25px;left:-35px
+}
+
+.floral-corner-bottom {
+  transform-origin:100% 100%;animation:9s ease-in-out infinite floral-breathe-reverse;bottom:-30px;right:-40px;transform:rotate(180deg)
+}
+
+.floral-subtle {
+  opacity:.8;filter:saturate(.82)
+}
+
+.invitation-wrap {
+  opacity:0;place-items:start center;max-height:0;padding:0 14px;transition:opacity .8s,max-height 1.1s;display:grid;overflow:hidden
+}
+
+.is-open .invitation-wrap {
+  opacity:1;max-height:10000px;padding-bottom:28px
+}
+
+.is-open .invitation-card {
+  animation:.9s both invitation-reveal
+}
+
+.invitation-card {
+  text-align:center;padding:170px 26px 150px
+}
+
+.request {
+  margin-top:24px;font-size:1.05rem;font-style:italic;line-height:1.3
+}
+
+.request strong {
+  font-size:1.5rem;font-style:normal
+}
+
+.names {
+  margin-top:32px
+}
+
+.names p {
+  margin:5px 0 12px;font-style:italic;font-weight:600
+}
+
+.names h2,.venue h2,.countdown h2 {
+  font-family:var(--font-display);margin-top:26px;font-size:2.4rem;font-weight:500;line-height:1
+}
+
+.date-block {
+  margin-top:38px
+}
+
+.day {
+  text-transform:uppercase;letter-spacing:.16em;font-weight:700
+}
+
+.date-row {
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;max-width:440px;margin:10px auto;display:grid
+}
+
+.date-row span {
+  border-block:1px solid var(--gold);letter-spacing:.08em;padding:7px 3px;font-size:clamp(.8rem,3.5vw,1rem);font-weight:700
+}
+
+.date-row strong {
+  padding:0 14px;font-size:3.7rem;line-height:.8
+}
+
+.date-row sup {
+  vertical-align:top;font-size:.65rem
+}
+
+.hijri {
+  font-style:italic;font-weight:600
+}
+
+.venue {
+  margin-top:42px
+}
+
+.venue-box {
+  border:1px solid var(--gold);background:var(--card);border-radius:3px;padding:24px 14px 14px
+}
+
+.venue-box {
+  background:color-mix(in oklab, var(--card) 92%, var(--cream-deep))
+}
+
+.venue-box h3 {
+  font-size:1.45rem;font-style:italic;font-weight:700
+}
+
+.venue-box address {
+  flex-direction:column;margin:9px 0 22px;font-size:1rem;font-weight:600;line-height:1.25;display:flex
+}
+
+.map-frame {
+  border:1px solid var(--gold);background:var(--muted);height:250px;margin-top:18px;overflow:hidden
+}
+
+.map-frame iframe {
+  filter:sepia(.15)saturate(.72)contrast(.94);border:0;width:100%;height:100%
+}
+
+.countdown {
+  margin:54px 0 48px
+}
+
+.countdown-grid {
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:24px;display:grid
+}
+
+.countdown-unit {
+  border-block:1px solid var(--gold);min-width:0;padding:14px 2px 11px
+}
+
+.countdown-unit strong {
+  font-size:clamp(1.45rem,7vw,2.35rem);font-weight:600;display:block
+}
+
+.countdown-unit span {
+  letter-spacing:.08em;font-size:clamp(.52rem,2.3vw,.72rem)
+}
+
+.today-message {
+  font-family:var(--font-display);font-size:2.2rem
+}
+
+.final-message {
+  line-height:1.3
+}
+
+.final-message p span {
+  font-size:1.05rem;font-weight:600;display:block
+}
+
+.living-atmosphere {
+  z-index:6;pointer-events:none;position:absolute;inset:0;overflow:hidden
+}
+
+.atmosphere-page {
+  z-index:20;position:fixed
+}
+
+.ambient-glow {
+  aspect-ratio:1;background:radial-gradient(circle, var(--gold), transparent 68%);border-radius:50%;width:min(82vw,680px);position:absolute;top:46%;left:50%;transform:translate(-50%,-50%)
+}
+
+.ambient-glow {
+  background:radial-gradient(circle, color-mix(in oklab, var(--gold) 15%, transparent), transparent 68%)
+}
+
+.ambient-glow {
+  opacity:.75
+}
+
+.butterfly {
+  opacity:.7;perspective:100px;justify-content:center;align-items:center;width:30px;height:24px;display:flex;position:absolute
+}
+
+.butterfly i {
+  background:linear-gradient(145deg, var(--gold), var(--seal));clip-path:polygon(100% 50%,58% 8%,12% 0,0 38%,28% 92%,72% 78%);transform-origin:100%;width:14px;height:19px;filter:drop-shadow(0 1px 2px var(--burgundy-deep));animation:.28s ease-in-out infinite alternate wing-left
+}
+
+.butterfly i {
+  filter:drop-shadow(0 1px 2px color-mix(in oklab, var(--burgundy-deep) 45%, transparent))
+}
+
+.butterfly i:nth-child(2) {
+  transform-origin:0;animation-name:wing-right
+}
+
+.butterfly b {
+  background:var(--burgundy-deep);border-radius:50%;width:2px;height:16px;position:absolute
+}
+
+.butterfly-one {
+  animation:15s ease-in-out infinite butterfly-flight-one
+}
+
+.butterfly-two {
+  animation:18s ease-in-out 2s infinite butterfly-flight-two
+}
+
+.butterfly-three {
+  animation:9s ease-in-out infinite butterfly-flight-three
+}
+
+.floating-petal {
+  background:linear-gradient(145deg, var(--rose), var(--seal));border-radius:80% 0 80% 30%;width:8px;height:14px;position:absolute;top:-28px
+}
+
+.floating-petal {
+  background:linear-gradient(145deg, var(--rose), color-mix(in oklab, var(--seal) 70%, var(--rose)))
+}
+
+.floating-petal {
+  opacity:0;animation:9s linear infinite petal-fall
+}
+
+.floating-petal-1 {
+  animation-delay:-2s;left:5%
+}
+
+.floating-petal-2 {
+  animation-duration:12s;animation-delay:1.4s;left:12%
+}
+
+.floating-petal-3 {
+  animation-duration:10s;animation-delay:-6s;left:20%
+}
+
+.floating-petal-4 {
+  animation-delay:2.2s;left:28%
+}
+
+.floating-petal-5 {
+  animation-duration:13s;animation-delay:-4s;left:36%
+}
+
+.floating-petal-6 {
+  animation-delay:.8s;left:44%
+}
+
+.floating-petal-7 {
+  animation-duration:11s;animation-delay:-7s;left:52%
+}
+
+.floating-petal-8 {
+  animation-delay:3s;left:60%
+}
+
+.floating-petal-9 {
+  animation-duration:12.5s;animation-delay:-3s;left:68%
+}
+
+.floating-petal-10 {
+  animation-delay:1.8s;left:76%
+}
+
+.floating-petal-11 {
+  animation-duration:10.5s;animation-delay:-5s;left:84%
+}
+
+.floating-petal-12 {
+  animation-delay:2.6s;left:93%
+}
+
+.floating-petal-13 {
+  animation-duration:14s;animation-delay:-8s;left:16%
+}
+
+.floating-petal-14 {
+  animation-duration:13s;animation-delay:4s;left:47%
+}
+
+.floating-petal-15 {
+  animation-duration:15s;animation-delay:-9s;left:72%
+}
+
+.floating-petal-16 {
+  animation-duration:11.5s;animation-delay:-1s;left:89%
+}
+
+.petals {
+  z-index:20;pointer-events:none;position:fixed;inset:0;overflow:hidden
+}
+
+.petal {
+  background:var(--rose);opacity:0;border-radius:80% 0 80% 30%;width:9px;height:14px;animation:7s linear forwards petal-fall;position:absolute;top:-30px
+}
+
+.petal-1 {
+  animation-delay:.2s;left:8%
+}
+
+.petal-2 {
+  animation-delay:1.4s;left:17%
+}
+
+.petal-3 {
+  animation-delay:.7s;left:28%
+}
+
+.petal-4 {
+  animation-delay:2.2s;left:39%
+}
+
+.petal-5 {
+  animation-delay:1s;left:49%
+}
+
+.petal-6 {
+  animation-delay:2.8s;left:58%
+}
+
+.petal-7 {
+  animation-delay:.4s;left:68%
+}
+
+.petal-8 {
+  animation-delay:1.8s;left:76%
+}
+
+.petal-9 {
+  animation-delay:2.5s;left:84%
+}
+
+.petal-10 {
+  animation-delay:1.1s;left:92%
+}
+
+.petal-11 {
+  animation-delay:3.3s;left:63%
+}
+
+.invitation-card {
+  padding-inline:68px
+}
+
+.map-frame {
+  height:330px
+}
+
+.envelope-title {
+  margin-bottom:52px
+}
+
+.butterfly {
+  transform:scale(.78)
+}
+
+/* Media Queries */
+
+@media (width>=640px) {
+.invitation-card{padding-inline:68px}.opening-copy{padding-inline:70px}.map-frame{height:330px}
+}
+
+@media (width<=480px) {
+.opening-screen>.floral-corner{opacity:.28;width:58vw}.envelope-title{margin-bottom:52px}.butterfly{transform:scale(.78)}
+}

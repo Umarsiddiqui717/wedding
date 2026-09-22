@@ -1,0 +1,7 @@
+{
+  "name": "Saleha Weds Owesh | Nikah Invitation",
+  "description": "An exquisite white and ivory digital Nikah invitation for Saleha & Owesh featuring an interactive 3D envelope opening, animated butterflies, falling petals, countdown timer, and venue directions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
