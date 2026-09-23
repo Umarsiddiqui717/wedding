@@ -123,7 +123,7 @@ export const MainInvitationCard: React.FC<MainInvitationCardProps> = ({ onReopen
 
           {/* Host announcement */}
           <div className="mt-4 sm:mt-5">
-            <h2 className="font-serif-lux text-base sm:text-lg font-bold tracking-wide text-[#0b3838]">
+            <h2 className="font-serif-lux text-base sm:text-lg font-bold tracking-wide text-[#0b3838] whitespace-nowrap">
               Mr. Muqeemuddin Siddiqui
             </h2>
             <p className="font-serif-lux italic text-xs sm:text-[13px] text-[#1a5555] mt-1 leading-snug">

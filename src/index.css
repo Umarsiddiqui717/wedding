@@ -205,7 +205,7 @@ body {
 
 .card-bismillah-arabic {
   font-family: "Amiri", "Noto Naskh Arabic", "Traditional Arabic", serif;
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-size: clamp(1.35rem, 4.5vw, 2rem);
   font-weight: 700;
   line-height: 1.4;
   color: #124545;
@@ -215,6 +215,7 @@ body {
   letter-spacing: 0;
   user-select: none;
   text-align: center;
+  white-space: nowrap;
 }
 
 .envelope-title p {
@@ -530,129 +531,264 @@ body {
 }
 
 .blessing {
-  font-size:1.15rem;font-weight:600;line-height:1.25
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .blessing small {
-  font-size:.87rem;font-style:italic;font-weight:500
+  font-size: clamp(0.78rem, 2.7vw, 0.88rem);
+  font-style: italic;
+  font-weight: 500;
 }
 
-.couple-name,.names h1 {
-  font-family:var(--font-display);font-size:clamp(3.5rem,17vw,6.5rem);line-height:.82
+.couple-name, .names h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 10.5vw, 4.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  word-break: normal;
 }
 
 .weds-seal {
-  border:1px solid var(--gold);width:55px;height:55px;color:var(--gold);font-family:var(--font-display);border-radius:50%;place-items:center;margin:12px auto;font-size:1.75rem;display:grid;position:relative
+  border: 1px solid var(--gold);
+  width: 48px;
+  height: 48px;
+  color: var(--gold);
+  font-family: var(--font-display);
+  border-radius: 50%;
+  place-items: center;
+  margin: 10px auto;
+  font-size: 1.5rem;
+  display: grid;
+  position: relative;
 }
 
 .ornament {
-  width:min(230px,65vw);color:var(--gold);align-items:center;gap:10px;margin:22px auto;display:flex
+  width: min(210px, 55vw);
+  color: var(--gold);
+  align-items: center;
+  gap: 8px;
+  margin: 18px auto;
+  display: flex;
 }
 
 .ornament span {
-  background:var(--gold);flex:1;height:1px
+  background: var(--gold);
+  flex: 1;
+  height: 1px;
 }
 
 .ornament b {
-  font-size:.6rem
+  font-size: 0.6rem;
 }
 
-.opening-lanterns,.card-lanterns {
-  z-index:2;width:285px;height:auto;animation:7s ease-in-out infinite lantern-drift;position:absolute;top:-25px;right:-80px
+.opening-lanterns, .card-lanterns {
+  z-index: 2;
+  width: clamp(190px, 44vw, 285px);
+  height: auto;
+  animation: 7s ease-in-out infinite lantern-drift;
+  position: absolute;
+  top: -20px;
+  right: clamp(-45px, -8vw, -80px);
+  pointer-events: none;
 }
 
 .floral-corner {
-  z-index:2;pointer-events:none;width:min(58vw,390px);height:auto;position:absolute
+  z-index: 2;
+  pointer-events: none;
+  width: min(48vw, 360px);
+  height: auto;
+  position: absolute;
 }
 
 .floral-corner-top {
-  transform-origin:0 0;animation:8s ease-in-out infinite floral-breathe;top:-25px;left:-35px
+  transform-origin: 0 0;
+  animation: 8s ease-in-out infinite floral-breathe;
+  top: -20px;
+  left: -25px;
 }
 
 .floral-corner-bottom {
-  transform-origin:100% 100%;animation:9s ease-in-out infinite floral-breathe-reverse;bottom:-30px;right:-40px;transform:rotate(180deg)
+  transform-origin: 100% 100%;
+  animation: 9s ease-in-out infinite floral-breathe-reverse;
+  bottom: -25px;
+  right: -30px;
+  transform: rotate(180deg);
 }
 
 .floral-subtle {
-  opacity:.8;filter:saturate(.82)
+  opacity: 0.8;
+  filter: saturate(0.82);
 }
 
 .invitation-wrap {
-  opacity:0;place-items:start center;max-height:0;padding:0 14px;transition:opacity .8s,max-height 1.1s;display:grid;overflow:hidden
+  opacity: 0;
+  place-items: start center;
+  max-height: 0;
+  padding: 0 clamp(8px, 2.5vw, 14px);
+  transition: opacity 0.8s, max-height 1.1s;
+  display: grid;
+  overflow: hidden;
 }
 
 .is-open .invitation-wrap {
-  opacity:1;max-height:10000px;padding-bottom:28px
+  opacity: 1;
+  max-height: 10000px;
+  padding-bottom: 28px;
 }
 
 .is-open .invitation-card {
-  animation:.9s both invitation-reveal
+  animation: 0.9s both invitation-reveal;
 }
 
 .invitation-card {
-  text-align:center;padding:170px 26px 150px
+  text-align: center;
+  padding: clamp(125px, 28vw, 165px) clamp(12px, 3.8vw, 36px) clamp(80px, 18vw, 135px);
+  box-sizing: border-box;
 }
 
 .request {
-  margin-top:24px;font-size:1.05rem;font-style:italic;line-height:1.3
+  margin-top: 18px;
+  font-size: clamp(0.92rem, 3.2vw, 1.05rem);
+  font-style: italic;
+  line-height: 1.35;
 }
 
-.request strong {
-  font-size:1.5rem;font-style:normal
+.request strong,
+.request .host-name {
+  font-size: clamp(1.08rem, 4.3vw, 1.45rem);
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  letter-spacing: 0.01em;
+  max-width: 100%;
 }
 
 .names {
-  margin-top:32px
+  margin-top: 24px;
 }
 
 .names p {
-  margin:5px 0 12px;font-style:italic;font-weight:600
+  margin: 4px 0 10px;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(0.82rem, 2.9vw, 0.98rem);
+  white-space: nowrap;
 }
 
 .names h2 {
-  font-family:var(--font-display);
-  margin-top:20px;
-  font-size:clamp(1.75rem, 5.5vw, 2.15rem);
-  font-weight:500;
-  line-height:1.1;
-  white-space:nowrap;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  max-width:100%;
+  font-family: var(--font-display);
+  margin-top: 16px;
+  font-size: clamp(1.45rem, 5vw, 2.1rem);
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
 }
 
-.venue h2,.countdown h2 {
-  font-family:var(--font-display);margin-top:26px;font-size:2.4rem;font-weight:500;line-height:1
+.venue h2, .countdown h2 {
+  font-family: var(--font-display);
+  margin-top: 22px;
+  font-size: clamp(1.9rem, 6.5vw, 2.4rem);
+  font-weight: 500;
+  line-height: 1;
 }
 
 .date-block {
-  margin-top:38px
+  margin-top: 26px;
 }
 
 .day {
-  text-transform:uppercase;letter-spacing:.16em;font-weight:700
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
 }
 
 .date-row {
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;max-width:440px;margin:10px auto;display:grid
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1.8vw, 14px);
+  max-width: 380px;
+  margin: 8px auto 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+.date-row .date-month,
+.date-row .date-year,
 .date-row span {
-  border-block:1px solid var(--gold);letter-spacing:.08em;padding:7px 3px;font-size:clamp(.8rem,3.5vw,1rem);font-weight:700
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  border-block: 1px solid var(--gold);
+  letter-spacing: 0.1em;
+  padding: 5px 2px;
+  font-size: clamp(0.72rem, 2.6vw, 0.95rem);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.date-day-num {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 0.95;
+  padding: 0 clamp(4px, 1.5vw, 12px);
+  white-space: nowrap;
+}
+
+.date-day-num .num {
+  font-size: clamp(2.2rem, 7.5vw, 3.4rem);
+  font-weight: 700;
+  line-height: 0.95;
+  color: var(--primary);
+}
+
+.date-day-num .ordinal {
+  font-size: clamp(0.68rem, 2.2vw, 0.95rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary);
+  margin-left: 2px;
+  vertical-align: top;
+  position: relative;
+  top: 0.08em;
+  letter-spacing: 0.04em;
 }
 
 .date-row strong {
-  padding:0 14px;font-size:3.7rem;line-height:.8
+  padding: 0 8px;
+  font-size: clamp(2.2rem, 7.5vw, 3.4rem);
+  line-height: 0.95;
+  display: inline-flex;
+  align-items: flex-start;
+  white-space: nowrap;
 }
 
 .date-row sup {
-  vertical-align:top;font-size:.65rem
+  font-size: 0.42em;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 2px;
+  vertical-align: top;
+  position: relative;
+  top: 0.08em;
 }
 
 .hijri {
-  font-style:italic;font-weight:600
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+  margin-top: 4px;
 }
 
 .venue {
@@ -898,30 +1034,31 @@ body {
   animation-delay:3.3s;left:63%
 }
 
-.invitation-card {
-  padding-inline:68px
-}
-
-.map-frame {
-  height:330px
-}
-
-.envelope-title {
-  margin-bottom:52px
-}
-
-.butterfly {
-  transform:scale(.78)
-}
-
 /* Media Queries */
 
-@media (width>=640px) {
-.invitation-card{padding-inline:68px}.opening-copy{padding-inline:70px}.map-frame{height:330px}
+@media (min-width: 640px) {
+  .invitation-card {
+    padding-inline: 54px;
+  }
+  .opening-copy {
+    padding-inline: 70px;
+  }
+  .map-frame {
+    height: 330px;
+  }
 }
 
-@media (width<=480px) {
-.opening-screen>.floral-corner{opacity:.28;width:58vw}.envelope-title{margin-bottom:52px}.butterfly{transform:scale(.78)}
+@media (max-width: 480px) {
+  .opening-screen > .floral-corner {
+    opacity: 0.28;
+    width: 58vw;
+  }
+  .envelope-title {
+    margin-bottom: 42px;
+  }
+  .butterfly {
+    transform: scale(0.78);
+  }
 }
 
 /* ==========================================================================
@@ -1000,8 +1137,10 @@ body {
   }
 }
 
+.date-revealed-active .date-day-num,
 .date-revealed-active .date-row strong {
-  display: inline-block;
+  display: inline-flex;
+  align-items: flex-start;
   animation: number-pop-glow 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 

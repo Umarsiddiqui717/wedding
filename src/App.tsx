@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ExternalLink, Sparkles } from 'lucide-react';
+import { ChevronDown, ExternalLink, Sparkles, Film, RotateCcw } from 'lucide-react';
 import { DateScratchCard } from './components/DateScratchCard';
+import { RoyalVideoIntro } from './components/RoyalVideoIntro';
+import { IntroVideoManagerModal } from './components/IntroVideoManagerModal';
+import { getIntroVideoFromStorage } from './utils/videoStorage';
 
 const invitationData = {
   bride: 'Saleha',
@@ -148,21 +151,80 @@ function CountdownTimer() {
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const petalIndices = useMemo(() => Array.from({ length: 11 }, (_, i) => i), []);
 
   const embedMapUrl = `https://www.google.com/maps?q=${invitationData.mapCenter.latitude},${invitationData.mapCenter.longitude}&z=16&output=embed`;
 
+  useEffect(() => {
+    // 1. Check IndexedDB storage for custom user-uploaded video
+    getIntroVideoFromStorage().then((blob) => {
+      if (blob) {
+        setVideoSrc(URL.createObjectURL(blob));
+      } else {
+        // 2. Check if default video exists at /wedding-intro.mp4
+        fetch('/wedding-intro.mp4', { method: 'HEAD' })
+          .then((res) => {
+            if (res.ok) {
+              setVideoSrc('/wedding-intro.mp4');
+            }
+          })
+          .catch(() => {});
+      }
+    });
+  }, []);
+
   const handleOpenClick = () => {
     if (isOpening) return;
     setIsOpening(true);
 
-    window.setTimeout(() => {
-      setIsOpen(true);
+    if (videoSrc) {
+      // Allow envelope animation to flap open (~1.3s), then start fullscreen video!
       window.setTimeout(() => {
-        document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
-      }, 80);
-    }, 2300);
+        setIsVideoPlaying(true);
+      }, 1300);
+    } else {
+      // Standard reveal if no video is present
+      window.setTimeout(() => {
+        setIsOpen(true);
+        window.setTimeout(() => {
+          document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
+      }, 2300);
+    }
+  };
+
+  // Called when video reaches the last second or ends
+  const handleVideoFinish = () => {
+    setIsVideoPlaying(false);
+    setIsOpen(true);
+    window.setTimeout(() => {
+      document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
+    }, 80);
+  };
+
+  // Fallback if video fails to play
+  const handleVideoFallback = () => {
+    setIsVideoPlaying(false);
+    setIsOpen(true);
+    window.setTimeout(() => {
+      document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
+    }, 80);
+  };
+
+  const handleTestPlay = () => {
+    setIsOpening(true);
+    setIsVideoPlaying(true);
+  };
+
+  const handleResealEnvelope = () => {
+    setIsOpen(false);
+    setIsOpening(false);
+    setIsVideoPlaying(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -170,6 +232,24 @@ export default function App() {
       id="invitation-app-root"
       className={`invitation-site ${isOpening ? 'is-opening' : ''} ${isOpen ? 'is-open' : ''}`}
     >
+      {/* Royal Gate Video Transition */}
+      {isVideoPlaying && videoSrc && (
+        <RoyalVideoIntro
+          videoSrc={videoSrc}
+          onFinish={handleVideoFinish}
+          onErrorFallback={handleVideoFallback}
+        />
+      )}
+
+      {/* Intro Video Manager Modal */}
+      <IntroVideoManagerModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        currentVideoSrc={videoSrc}
+        onVideoUpdated={(newSrc) => setVideoSrc(newSrc)}
+        onTestPlay={handleTestPlay}
+      />
+
       {/* 
         ========================================================================
         OPENING ENVELOPE SCREEN
@@ -231,6 +311,18 @@ export default function App() {
             <span>Tap to Open</span>
             <ChevronDown className="size-3.5 text-[var(--gold)] animate-bounce" aria-hidden="true" />
           </p>
+
+          {/* Intro Video button */}
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setIsVideoModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 backdrop-blur-md border border-white/40 text-white text-xs font-serif shadow-sm transition-all"
+            >
+              <Film className="size-3.5 text-[#fef9e7]" />
+              <span>{videoSrc ? '🎬 Intro Video Loaded' : '🎬 Upload Intro Video'}</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -272,7 +364,7 @@ export default function App() {
               <small>the most beneficent and the most merciful</small>
             </p>
             <p className="request">
-              <strong>{invitationData.host}</strong>
+              <strong className="host-name">{invitationData.host}</strong>
               <br />
               requests the honour of your presence at the
               <br />
@@ -300,11 +392,12 @@ export default function App() {
               <div className="py-2 px-1 sm:px-3">
                 <p className="day">{invitationData.day}</p>
                 <div className="date-row">
-                  <span>NOVEMBER</span>
-                  <strong>
-                    20<sup>TH</sup>
-                  </strong>
-                  <span>2026</span>
+                  <span className="date-month">NOVEMBER</span>
+                  <div className="date-day-num">
+                    <span className="num">20</span>
+                    <sup className="ordinal">TH</sup>
+                  </div>
+                  <span className="date-year">2026</span>
                 </div>
                 <p className="hijri">({invitationData.hijriDate})</p>
 
@@ -370,6 +463,17 @@ export default function App() {
 
             <Ornament />
             <strong>Your presence will be a blessing</strong>
+
+            <div className="mt-8 pt-4 border-t border-[var(--gold)]/30 flex justify-center">
+              <button
+                type="button"
+                onClick={handleResealEnvelope}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--gold)]/50 text-[oklch(35%_0.072_178)] hover:bg-[oklch(35%_0.072_178)]/10 text-xs font-serif font-semibold tracking-wider uppercase transition-all active:scale-95"
+              >
+                <RotateCcw className="size-3.5" />
+                <span>Re-close Envelope</span>
+              </button>
+            </div>
           </footer>
         </article>
       </section>
