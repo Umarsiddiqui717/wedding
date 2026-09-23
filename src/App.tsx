@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink, Sparkles } from 'lucide-react';
+import { DateScratchCard } from './components/DateScratchCard';
 
 const invitationData = {
   bride: 'Saleha',
@@ -24,7 +25,7 @@ const invitationData = {
   countdownTarget: '2026-11-20T00:00:00+05:30',
   hosts: [
     'Mr. Abdullah Siddiqui',
-    'Abdul Rubb Siddiqui',
+    'Abdul Rub Siddiqui',
     'Amanullah Siddiqui',
     'Mohammed Uzair Khan',
     'Relatives & Friends.',
@@ -180,6 +181,9 @@ export default function App() {
 
         <div className="envelope-stage">
           <div className="envelope-title">
+            <div className="envelope-bismillah-arabic" lang="ar" dir="rtl">
+              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+            </div>
             <p>In the name of ‘ALLAH’</p>
             <span>the most beneficent and the most merciful</span>
           </div>
@@ -194,36 +198,38 @@ export default function App() {
               <small>20 · 11 · 2026</small>
             </div>
 
-            {/* Realistic 3D Envelope flaps */}
+            {/* Realistic 3D 4-way outward opening envelope flaps (Top, Bottom, Left, Right) */}
             <div className="envelope-back" />
             <div className="envelope-left" />
             <div className="envelope-right" />
             <div className="envelope-bottom" />
-            <div className="envelope-flap" />
+            <div className="envelope-top envelope-flap" />
 
-            {/* Embossed Flourishes */}
-            <div className="envelope-emboss emboss-left" aria-hidden="true">
-              ❦
-            </div>
-            <div className="envelope-emboss emboss-right" aria-hidden="true">
-              ❦
+            {/* Divine Center Light Burst & Radiant Rays when opening */}
+            <div className="envelope-center-light" aria-hidden="true">
+              <div className="light-rays" />
+              <div className="light-core" />
             </div>
 
-            {/* Central Wax Seal Button */}
+            {/* Central Wax Seal Button with authentic Arabic Bismillah calligraphy */}
             <button
               type="button"
               onClick={handleOpenClick}
               disabled={isOpening}
               aria-disabled={isOpening}
-              aria-label="Open invitation"
+              aria-label="Open invitation with Bismillah"
               className="wax-seal"
             >
-              S<span>&amp;</span>O
+              <span className="bismillah-arabic" lang="ar" dir="rtl">
+                بِسْمِ&nbsp;اللَّهِ
+              </span>
+              <span className="seal-subtext">Tap to Open</span>
             </button>
           </div>
 
-          <p className="tap-instruction">
-            Open Invitation <ChevronDown className="inline-block ml-1 size-3.5" aria-hidden="true" />
+          <p className="tap-instruction flex items-center justify-center gap-1.5">
+            <span>Tap to Open</span>
+            <ChevronDown className="size-3.5 text-[var(--gold)] animate-bounce" aria-hidden="true" />
           </p>
         </div>
       </section>
@@ -257,6 +263,9 @@ export default function App() {
 
           {/* Header blessing & host */}
           <header className="invitation-header reveal-section">
+            <div className="card-bismillah-arabic" lang="ar" dir="rtl">
+              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+            </div>
             <p className="blessing">
               In the name of ‘ALLAH’
               <br />
@@ -278,29 +287,37 @@ export default function App() {
             <span className="weds-seal">Weds</span>
             <h1>{invitationData.groom}</h1>
             <p>( S/o. {invitationData.groomParent} )</p>
-            <h2>✿ In Sha Allah Nikah ✿</h2>
+            <h2>
+              <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
+              <span className="tracking-wide">In Sha Allah Nikah</span>
+              <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
+            </h2>
           </section>
 
-          {/* Date & Timings */}
+          {/* Date & Timings with Scratch to Reveal Animation */}
           <section className="date-block reveal-section" aria-label="Wedding date">
-            <p className="day">{invitationData.day}</p>
-            <div className="date-row">
-              <span>NOVEMBER</span>
-              <strong>
-                20<sup>TH</sup>
-              </strong>
-              <span>2026</span>
-            </div>
-            <p className="hijri">({invitationData.hijriDate})</p>
+            <DateScratchCard>
+              <div className="py-2 px-1 sm:px-3">
+                <p className="day">{invitationData.day}</p>
+                <div className="date-row">
+                  <span>NOVEMBER</span>
+                  <strong>
+                    20<sup>TH</sup>
+                  </strong>
+                  <span>2026</span>
+                </div>
+                <p className="hijri">({invitationData.hijriDate})</p>
 
-            <Ornament />
+                <Ornament />
 
-            <p>
-              <b>Nikah :</b> {invitationData.nikah}
-            </p>
-            <p>
-              <b>Dinner :</b> {invitationData.dinner}
-            </p>
+                <p>
+                  <b>Nikah :</b> {invitationData.nikah}
+                </p>
+                <p>
+                  <b>Dinner :</b> {invitationData.dinner}
+                </p>
+              </div>
+            </DateScratchCard>
           </section>
 
           {/* Venue & Map */}

@@ -109,7 +109,7 @@ export const ScratchRevealSeal: React.FC<ScratchRevealSealProps> = ({
 
     ctx.font = '600 11px "Cinzel", serif';
     ctx.fillStyle = '#aa7e22';
-    ctx.fillText('• TAP OR RUB •', width / 2, height / 2 + 10);
+    ctx.fillText('• RUB TO REVEAL •', width / 2, height / 2 + 10);
 
     ctx.font = '700 14px "Cinzel", serif';
     ctx.fillStyle = '#0e4343';
@@ -376,12 +376,11 @@ export const ScratchRevealSeal: React.FC<ScratchRevealSealProps> = ({
       */}
       {!hasStartedScratching && !hasTriggeredComplete && (
         <div
-          onClick={triggerComplete}
-          className="absolute -bottom-10 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#d4af37]/60 shadow-md backdrop-blur-sm cursor-pointer z-30 transition-all hover:scale-105 active:scale-95 group"
+          className="absolute -bottom-10 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 border border-[#d4af37]/60 shadow-md backdrop-blur-sm pointer-events-none z-30 transition-all group"
         >
           <Hand className="w-3.5 h-3.5 text-[#aa7e22] animate-bounce" />
           <span className="text-[11px] font-display tracking-wider text-[#0e4343] font-semibold">
-            Scratch or Tap to Reveal
+            Scratch to Reveal
           </span>
           <Sparkles className="w-3 h-3 text-[#d4af37] animate-pulse" />
         </div>

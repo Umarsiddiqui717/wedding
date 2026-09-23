@@ -255,7 +255,7 @@ export const MainInvitationCard: React.FC<MainInvitationCardProps> = ({ onReopen
               Mr. Abdullah Siddiqui,
             </h3>
             <p className="font-serif-lux text-[11px] sm:text-xs text-[#134e4e] font-medium leading-relaxed mt-0.5">
-              Abdul Rubb Siddiqui, Amanullah Siddiqui, Mohammed Uzair Khan,
+              Abdul Rub Siddiqui, Amanullah Siddiqui, Mohammed Uzair Khan,
               <br />
               <span className="font-semibold text-[#0e4343]">Relatives & Friends.</span>
             </p>
