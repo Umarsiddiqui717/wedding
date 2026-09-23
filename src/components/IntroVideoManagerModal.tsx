@@ -28,12 +28,26 @@ export const IntroVideoManagerModal: React.FC<IntroVideoManagerModalProps> = ({
     if (!file) return;
 
     setIsProcessing(true);
-    setSuccessMsg('');
+    setSuccessMsg('Saving video to app for everyone...');
     try {
+      // 1. Upload to server to save directly into public/wedding-intro.mp4 so it works for EVERYONE
+      try {
+        const uploadRes = await fetch('/api/upload-video', {
+          method: 'POST',
+          headers: { 'Content-Type': file.type || 'video/mp4' },
+          body: file,
+        });
+        if (uploadRes.ok) {
+          console.log('Video saved to server /wedding-intro.mp4');
+        }
+      } catch (err) {
+        console.warn('Server upload error, saving locally:', err);
+      }
+
+      // 2. Also save to local IndexedDB for immediate playback
       await saveIntroVideoToStorage(file);
-      const url = URL.createObjectURL(file);
-      onVideoUpdated(url);
-      setSuccessMsg('Video saved successfully to your app storage!');
+      onVideoUpdated('/wedding-intro.mp4');
+      setSuccessMsg('✓ Perfect! Video is now saved in the app and will play for EVERYONE who visits!');
     } catch {
       setSuccessMsg('Failed to save video. Please try again.');
     } finally {

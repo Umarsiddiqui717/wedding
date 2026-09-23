@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ExternalLink, Sparkles, Film, RotateCcw } from 'lucide-react';
+import { ChevronDown, ExternalLink, Sparkles, RotateCcw } from 'lucide-react';
 import { DateScratchCard } from './components/DateScratchCard';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
-import { IntroVideoManagerModal } from './components/IntroVideoManagerModal';
 import { getIntroVideoFromStorage } from './utils/videoStorage';
 
 const invitationData = {
@@ -151,7 +150,7 @@ function CountdownTimer() {
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>('/wedding-intro.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
@@ -160,59 +159,57 @@ export default function App() {
   const embedMapUrl = `https://www.google.com/maps?q=${invitationData.mapCenter.latitude},${invitationData.mapCenter.longitude}&z=16&output=embed`;
 
   useEffect(() => {
-    // 1. Check IndexedDB storage for custom user-uploaded video
+    // Check IndexedDB storage in case user updated video locally
     getIntroVideoFromStorage().then((blob) => {
       if (blob) {
         setVideoSrc(URL.createObjectURL(blob));
       } else {
-        // 2. Check if default video exists at /wedding-intro.mp4
-        fetch('/wedding-intro.mp4', { method: 'HEAD' })
-          .then((res) => {
-            if (res.ok) {
-              setVideoSrc('/wedding-intro.mp4');
-            }
-          })
-          .catch(() => {});
+        setVideoSrc('/wedding-intro.mp4');
       }
     });
   }, []);
 
   const handleOpenClick = () => {
-    if (isOpening) return;
+    if (isOpening || isVideoPlaying) return;
     setIsOpening(true);
 
     if (videoSrc) {
-      // Allow envelope animation to flap open (~1.3s), then start fullscreen video!
+      // Start fullscreen video directly upon wax seal click
       window.setTimeout(() => {
         setIsVideoPlaying(true);
-      }, 1300);
+      }, 400);
     } else {
       // Standard reveal if no video is present
       window.setTimeout(() => {
         setIsOpen(true);
-        window.setTimeout(() => {
-          document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
-        }, 80);
-      }, 2300);
+        setIsOpening(false);
+        window.scrollTo({ top: 0, left: 0 });
+      }, 1600);
     }
   };
 
-  // Called when video reaches the last second or ends
+  // Called right as video starts dissolving on the last second
+  // Sets card open directly so it's ready immediately beneath the dissolving video
+  const handleVideoPreFinish = () => {
+    setIsOpen(true);
+    setIsOpening(false);
+    window.scrollTo({ top: 0, left: 0 });
+  };
+
+  // Called when video overlay is fully unmounted
   const handleVideoFinish = () => {
     setIsVideoPlaying(false);
     setIsOpen(true);
-    window.setTimeout(() => {
-      document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
-    }, 80);
+    setIsOpening(false);
+    window.scrollTo({ top: 0, left: 0 });
   };
 
   // Fallback if video fails to play
   const handleVideoFallback = () => {
     setIsVideoPlaying(false);
     setIsOpen(true);
-    window.setTimeout(() => {
-      document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' });
-    }, 80);
+    setIsOpening(false);
+    window.scrollTo({ top: 0, left: 0 });
   };
 
   const handleTestPlay = () => {
@@ -236,95 +233,77 @@ export default function App() {
       {isVideoPlaying && videoSrc && (
         <RoyalVideoIntro
           videoSrc={videoSrc}
+          onPreFinish={handleVideoPreFinish}
           onFinish={handleVideoFinish}
           onErrorFallback={handleVideoFallback}
         />
       )}
-
-      {/* Intro Video Manager Modal */}
-      <IntroVideoManagerModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        currentVideoSrc={videoSrc}
-        onVideoUpdated={(newSrc) => setVideoSrc(newSrc)}
-        onTestPlay={handleTestPlay}
-      />
 
       {/* 
         ========================================================================
         OPENING ENVELOPE SCREEN
         ========================================================================
       */}
-      <section className="opening-screen" aria-label="Wedding invitation cover">
-        <LivingAtmosphere />
-        <FloralCorners subtle />
+      {!isOpen && (
+        <section className="opening-screen" aria-label="Wedding invitation cover">
+          <LivingAtmosphere />
+          <FloralCorners subtle />
 
-        <div className="envelope-stage">
-          <div className="envelope-title">
-            <div className="envelope-bismillah-arabic" lang="ar" dir="rtl">
-              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
-            </div>
-            <p>In the name of ‘ALLAH’</p>
-            <span>the most beneficent and the most merciful</span>
-          </div>
-
-          <div className="envelope" aria-label="Sealed wedding invitation envelope">
-            {/* Envelope Paper with preview */}
-            <div className="envelope-paper">
-              <span>Wedding Invitation</span>
-              <strong>
-                Saleha <i>&amp;</i> Owesh
-              </strong>
-              <small>20 · 11 · 2026</small>
+          <div className="envelope-stage">
+            <div className="envelope-title">
+              <div className="envelope-bismillah-arabic" lang="ar" dir="rtl">
+                بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+              </div>
+              <p>In the name of ‘ALLAH’</p>
+              <span>the most beneficent and the most merciful</span>
             </div>
 
-            {/* Realistic 3D 4-way outward opening envelope flaps (Top, Bottom, Left, Right) */}
-            <div className="envelope-back" />
-            <div className="envelope-left" />
-            <div className="envelope-right" />
-            <div className="envelope-bottom" />
-            <div className="envelope-top envelope-flap" />
+            <div className="envelope" aria-label="Sealed wedding invitation envelope">
+              {/* Envelope Paper with preview */}
+              <div className="envelope-paper">
+                <span>Wedding Invitation</span>
+                <strong>
+                  Saleha <i>&amp;</i> Owesh
+                </strong>
+                <small>20 · 11 · 2026</small>
+              </div>
 
-            {/* Divine Center Light Burst & Radiant Rays when opening */}
-            <div className="envelope-center-light" aria-hidden="true">
-              <div className="light-rays" />
-              <div className="light-core" />
+              {/* Realistic 3D 4-way outward opening envelope flaps (Top, Bottom, Left, Right) */}
+              <div className="envelope-back" />
+              <div className="envelope-left" />
+              <div className="envelope-right" />
+              <div className="envelope-bottom" />
+              <div className="envelope-top envelope-flap" />
+
+              {/* Divine Center Light Burst & Radiant Rays when opening */}
+              <div className="envelope-center-light" aria-hidden="true">
+                <div className="light-rays" />
+                <div className="light-core" />
+              </div>
+
+              {/* Central Wax Seal Button with authentic Arabic Bismillah calligraphy */}
+              <button
+                type="button"
+                onClick={handleOpenClick}
+                disabled={isOpening || isVideoPlaying}
+                aria-disabled={isOpening || isVideoPlaying}
+                aria-label="Open invitation with Bismillah"
+                className="wax-seal"
+              >
+                <span className="bismillah-arabic" lang="ar" dir="rtl">
+                  بِسْمِ&nbsp;اللَّهِ
+                </span>
+                <span className="seal-subtext">Tap to Open</span>
+              </button>
             </div>
 
-            {/* Central Wax Seal Button with authentic Arabic Bismillah calligraphy */}
-            <button
-              type="button"
-              onClick={handleOpenClick}
-              disabled={isOpening}
-              aria-disabled={isOpening}
-              aria-label="Open invitation with Bismillah"
-              className="wax-seal"
-            >
-              <span className="bismillah-arabic" lang="ar" dir="rtl">
-                بِسْمِ&nbsp;اللَّهِ
-              </span>
-              <span className="seal-subtext">Tap to Open</span>
-            </button>
+            <p className="tap-instruction flex items-center justify-center gap-1.5">
+              <span>Tap to Open</span>
+              <ChevronDown className="size-3.5 text-[var(--gold)] animate-bounce" aria-hidden="true" />
+            </p>
           </div>
-
-          <p className="tap-instruction flex items-center justify-center gap-1.5">
-            <span>Tap to Open</span>
-            <ChevronDown className="size-3.5 text-[var(--gold)] animate-bounce" aria-hidden="true" />
-          </p>
-
-          {/* Intro Video button */}
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setIsVideoModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 backdrop-blur-md border border-white/40 text-white text-xs font-serif shadow-sm transition-all"
-            >
-              <Film className="size-3.5 text-[#fef9e7]" />
-              <span>{videoSrc ? '🎬 Intro Video Loaded' : '🎬 Upload Intro Video'}</span>
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 
         ========================================================================

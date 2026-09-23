@@ -4,12 +4,14 @@ import { Volume2, VolumeX, ChevronRight } from 'lucide-react';
 interface RoyalVideoIntroProps {
   videoSrc: string;
   onFinish: () => void;
+  onPreFinish?: () => void;
   onErrorFallback: () => void;
 }
 
 export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
   videoSrc,
   onFinish,
+  onPreFinish,
   onErrorFallback,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -23,10 +25,14 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
     if (hasTriggeredFinish.current) return;
     hasTriggeredFinish.current = true;
     setIsEnding(true);
+
+    // Mount and prepare the card underneath immediately so it opens directly
+    onPreFinish?.();
+
     // Smooth golden dissolve before releasing overlay
     setTimeout(() => {
       onFinish();
-    }, 600);
+    }, 550);
   };
 
   useEffect(() => {
