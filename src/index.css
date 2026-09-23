@@ -317,6 +317,33 @@ body {
   opacity: 0;
 }
 
+.envelope.is-opening .envelope-center-light {
+  display: block;
+  animation: burst-light 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.envelope.is-opening .wax-seal {
+  transform: translate(-50%, -50%) scale(1.12);
+  box-shadow: 0 0 50px rgba(255, 235, 175, 0.95), 0 0 80px rgba(212, 175, 55, 0.8);
+  filter: brightness(1.2);
+  transition: transform 0.4s ease-out, filter 0.4s ease-out, box-shadow 0.4s ease-out;
+}
+
+@keyframes burst-light {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(2);
+  }
+}
+
 .envelope-center-light .light-core {
   position: absolute;
   inset: -100px;

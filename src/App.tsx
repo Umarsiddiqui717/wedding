@@ -254,7 +254,7 @@ export default function App() {
               <span>the most beneficent and the most merciful</span>
             </div>
 
-            <div className="envelope" aria-label="Sealed wedding invitation envelope">
+            <div className={`envelope ${isOpening ? 'is-opening' : ''}`} aria-label="Sealed wedding invitation envelope">
               {/* Envelope Paper with preview */}
               <div className="envelope-paper">
                 <span>Wedding Invitation</span>
