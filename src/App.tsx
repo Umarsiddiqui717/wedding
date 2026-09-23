@@ -3,6 +3,7 @@ import { ChevronDown, ExternalLink, Sparkles, RotateCcw } from 'lucide-react';
 import { DateScratchCard } from './components/DateScratchCard';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
 import { getIntroVideoFromStorage } from './utils/videoStorage';
+import bundledIntroVideo from './assets/wedding-intro.mp4';
 
 const invitationData = {
   bride: 'Saleha',
@@ -150,9 +151,8 @@ function CountdownTimer() {
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
-  const [videoSrc, setVideoSrc] = useState<string | null>('/wedding-intro.mp4');
+  const [videoSrc, setVideoSrc] = useState<string>(bundledIntroVideo || '/wedding-intro.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const petalIndices = useMemo(() => Array.from({ length: 11 }, (_, i) => i), []);
 
@@ -163,8 +163,6 @@ export default function App() {
     getIntroVideoFromStorage().then((blob) => {
       if (blob) {
         setVideoSrc(URL.createObjectURL(blob));
-      } else {
-        setVideoSrc('/wedding-intro.mp4');
       }
     });
   }, []);
@@ -174,10 +172,8 @@ export default function App() {
     setIsOpening(true);
 
     if (videoSrc) {
-      // Start fullscreen video directly upon wax seal click
-      window.setTimeout(() => {
-        setIsVideoPlaying(true);
-      }, 400);
+      // Synchronously trigger video playback so mobile Safari/iOS maintains user gesture context
+      setIsVideoPlaying(true);
     } else {
       // Standard reveal if no video is present
       window.setTimeout(() => {

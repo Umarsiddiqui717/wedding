@@ -35,18 +35,25 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
     const video = videoRef.current;
     if (!video) return;
 
-    // Direct playback with sound since user clicked "Tap to Open"
-    video.muted = false;
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If device audio policy requires muted autoplay, mute and continue playing smoothly
-        video.muted = true;
-        video.play().catch(() => {
-          onErrorFallback();
+    // Start video playback immediately upon mount (user just tapped wax seal)
+    const startPlayback = () => {
+      // First attempt with sound
+      video.muted = false;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Autoplay with sound prevented by browser policy, switching to muted:', err);
+          // If iOS Safari or browser blocks audio autoplay, mute and resume immediately!
+          video.muted = true;
+          video.play().catch((playErr) => {
+            console.error('Playback failed completely:', playErr);
+            onErrorFallback();
+          });
         });
-      });
-    }
+      }
+    };
+
+    startPlayback();
   }, [onErrorFallback]);
 
   const handleTimeUpdate = () => {
@@ -62,27 +69,39 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
     }
   };
 
-  const handleEnded = () => {
-    triggerCompletion();
-  };
-
   return (
     <div
+      onClick={() => {
+        // If mobile browser paused video, tap anywhere resumes it
+        if (videoRef.current && videoRef.current.paused) {
+          videoRef.current.play();
+        }
+      }}
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity duration-700 ${
         isEnding ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100'
       }`}
       style={{ isolation: 'isolate' }}
     >
-      {/* Main Video Element playing uninterrupted */}
+      {/* Main Video Element */}
       <video
         ref={videoRef}
         src={videoSrc}
         playsInline
         webkit-playsinline="true"
+        x5-playsinline="true"
+        preload="auto"
         autoPlay
+        onCanPlay={() => {
+          if (videoRef.current && videoRef.current.paused && !isEnding) {
+            videoRef.current.play().catch(() => {});
+          }
+        }}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={handleEnded}
-        onError={() => onErrorFallback()}
+        onEnded={triggerCompletion}
+        onError={() => {
+          console.error('Video error event triggered for source:', videoSrc);
+          onErrorFallback();
+        }}
         className="w-full h-full object-cover sm:object-contain bg-black"
       />
 
