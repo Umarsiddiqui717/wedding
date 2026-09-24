@@ -4,6 +4,7 @@ import { NikahScratchAnimation } from './components/NikahScratchAnimation';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
 import { clearIntroVideoFromStorage } from './utils/videoStorage';
 import defaultCardImage from './assets/card-design.jpg';
+import defaultCardPng from './assets/card-design.png';
 import floralCornerImg from './assets/floral-corner.png';
 
 const invitationData = {
@@ -199,15 +200,18 @@ export default function App() {
   });
 
   const handleCardImageError = () => {
-    // If a custom or cached image fails to load, gracefully fall back to the bundled image
-    if (customCardImage !== defaultCardImage) {
+    // Multi-tier fallback guarantee:
+    if (customCardImage !== defaultCardImage && customCardImage !== defaultCardPng) {
       try {
         localStorage.removeItem('customCardDesign');
       } catch {}
       setCustomCardImage(defaultCardImage);
+    } else if (customCardImage === defaultCardImage) {
+      // If bundled JPG failed on this browser/environment, fallback to bundled PNG
+      setCustomCardImage(defaultCardPng);
     } else {
-      // If even the bundled jpg failed, try the fallback PNG
-      setCustomCardImage('/card-design.png');
+      // Direct root public fallback
+      setCustomCardImage('/card-design.jpg');
     }
   };
 
@@ -216,6 +220,10 @@ export default function App() {
   const embedMapUrl = `https://www.google.com/maps?q=${invitationData.mapCenter.latitude},${invitationData.mapCenter.longitude}&z=16&output=embed`;
 
   useEffect(() => {
+    // Eagerly preload image in browser memory so it opens instantly
+    const preload = new Image();
+    preload.src = defaultCardImage;
+
     // Purge any stale legacy video cached in browser IndexedDB
     clearIntroVideoFromStorage().catch(() => {});
 
