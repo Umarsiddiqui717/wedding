@@ -6,7 +6,17 @@
   Accept-Ranges: bytes
   Cache-Control: public, max-age=31536000, immutable
 
-/wedding-intro.mp4
-  Content-Type: video/mp4
-  Accept-Ranges: bytes
+/*.jpg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=86400
+
+/*.jpeg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=86400
+
+/*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400
+
+/assets/*
   Cache-Control: public, max-age=31536000, immutable

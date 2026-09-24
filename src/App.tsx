@@ -3,6 +3,8 @@ import { ChevronDown, ExternalLink, Sparkles, RotateCcw } from 'lucide-react';
 import { NikahScratchAnimation } from './components/NikahScratchAnimation';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
 import { clearIntroVideoFromStorage } from './utils/videoStorage';
+import defaultCardImage from './assets/card-design.jpg';
+import floralCornerImg from './assets/floral-corner.png';
 
 const invitationData = {
   bride: 'Saleha',
@@ -66,7 +68,7 @@ function FloralCorners({
     <>
       {/* Top Left Floral Corner */}
       <img
-        src="/floral-corner.png"
+        src={floralCornerImg}
         alt="Floral decoration top left"
         width={1024}
         height={1024}
@@ -75,7 +77,7 @@ function FloralCorners({
       {/* Top Right Floral Corner (flowers on the right side) */}
       {bothSides && (
         <img
-          src="/floral-corner.png"
+          src={floralCornerImg}
           alt="Floral decoration top right"
           width={1024}
           height={1024}
@@ -84,7 +86,7 @@ function FloralCorners({
       )}
       {/* Bottom Right Floral Corner */}
       <img
-        src="/floral-corner.png"
+        src={floralCornerImg}
         alt="Floral decoration bottom right"
         loading="lazy"
         width={1024}
@@ -94,7 +96,7 @@ function FloralCorners({
       {/* Bottom Left Floral Corner */}
       {bothSides && (
         <img
-          src="/floral-corner.png"
+          src={floralCornerImg}
           alt="Floral decoration bottom left"
           loading="lazy"
           width={1024}
@@ -181,14 +183,33 @@ export default function App() {
   const [isOpening, setIsOpening] = useState(false);
   const [videoSrc, setVideoSrc] = useState<string | null>('/wedding-intro.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [customCardImage, setCustomCardImage] = useState<string | null>(() => {
+  const [customCardImage, setCustomCardImage] = useState<string>(() => {
     try {
-      return localStorage.getItem('customCardDesign') || '/card-design.jpg';
-    } catch {
-      return '/card-design.jpg';
-    }
+      const saved = localStorage.getItem('customCardDesign');
+      // Only use localStorage value if it's a valid data URL or valid external image URL
+      if (saved && (saved.startsWith('data:image/') || saved.startsWith('http://') || saved.startsWith('https://'))) {
+        return saved;
+      }
+      // Clear invalid or stale /api/... references
+      if (saved) {
+        localStorage.removeItem('customCardDesign');
+      }
+    } catch {}
+    return defaultCardImage;
   });
-  const [cardImageFailed, setCardImageFailed] = useState(false);
+
+  const handleCardImageError = () => {
+    // If a custom or cached image fails to load, gracefully fall back to the bundled image
+    if (customCardImage !== defaultCardImage) {
+      try {
+        localStorage.removeItem('customCardDesign');
+      } catch {}
+      setCustomCardImage(defaultCardImage);
+    } else {
+      // If even the bundled jpg failed, try the fallback PNG
+      setCustomCardImage('/card-design.png');
+    }
+  };
 
   const petalIndices = useMemo(() => Array.from({ length: 11 }, (_, i) => i), []);
 
@@ -198,9 +219,14 @@ export default function App() {
     // Purge any stale legacy video cached in browser IndexedDB
     clearIntroVideoFromStorage().catch(() => {});
 
-    // Check if an intro video is saved on the server
+    // Check if an intro video is saved on the server (if backend exists)
     fetch('/api/video-info')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('No backend');
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) throw new Error('Not JSON');
+        return res.json();
+      })
       .then((data) => {
         if (data && data.hasVideo && data.videoUrl) {
           setVideoSrc(data.videoUrl);
@@ -208,13 +234,17 @@ export default function App() {
       })
       .catch(() => {});
 
-    // Check if a custom card image design is saved on the server
+    // Check if a custom card image design is saved on the server (if backend exists)
     fetch('/api/card-image-info')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('No backend');
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) throw new Error('Not JSON');
+        return res.json();
+      })
       .then((data) => {
         if (data && data.hasCardImage && data.imageUrl) {
           setCustomCardImage(data.imageUrl);
-          setCardImageFailed(false);
         }
       })
       .catch(() => {});
@@ -229,7 +259,6 @@ export default function App() {
       const dataUrl = ev.target?.result as string;
       if (dataUrl) {
         setCustomCardImage(dataUrl);
-        setCardImageFailed(false);
         try {
           localStorage.setItem('customCardDesign', dataUrl);
         } catch {}
@@ -237,19 +266,20 @@ export default function App() {
     };
     reader.readAsDataURL(file);
 
-    // Persist to server so it is immediately visible to everyone
+    // Optional server persist if available (fails silently on static hosts like Netlify)
     try {
       const res = await fetch('/api/upload-card-image', {
         method: 'POST',
         body: file,
       });
-      const data = await res.json();
-      if (data?.imageUrl) {
-        setCustomCardImage(data.imageUrl);
-        setCardImageFailed(false);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.imageUrl) {
+          setCustomCardImage(data.imageUrl);
+        }
       }
-    } catch (err) {
-      console.error('Failed to upload card design:', err);
+    } catch {
+      // Netlify is static; dataUrl in localStorage works immediately
     }
   };
 
@@ -398,9 +428,9 @@ export default function App() {
           </div>
         )}
 
-        <article className={`invitation-card ${!cardImageFailed && customCardImage ? 'with-card-image' : ''}`}>
+        <article className={`invitation-card ${customCardImage ? 'with-card-image' : ''}`}>
           {/* Card Presentation: wedding invitation design with royal scratch animation on the date section below In Sha Allah Nikah */}
-          {!cardImageFailed && customCardImage ? (
+          {customCardImage ? (
             <div
               className="custom-card-wrapper relative w-full overflow-hidden select-none mb-6 sm:mb-8"
               onDragOver={(e) => e.preventDefault()}
@@ -417,7 +447,7 @@ export default function App() {
                 alt="Nikah Invitation - Saleha & Owesh"
                 className="w-full h-auto block select-none pointer-events-none"
                 loading="eager"
-                onError={() => setCardImageFailed(true)}
+                onError={handleCardImageError}
               />
 
               {/* Interactive Scratch Card directly on the image below In Sha Allah Nikah covering Friday and date */}
