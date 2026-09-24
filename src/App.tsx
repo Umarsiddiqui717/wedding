@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ExternalLink, Sparkles, RotateCcw } from 'lucide-react';
-import { DateScratchCard } from './components/DateScratchCard';
+import { NikahScratchAnimation } from './components/NikahScratchAnimation';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
-import { getIntroVideoFromStorage } from './utils/videoStorage';
-import bundledIntroVideo from './assets/wedding-intro.mp4';
+import { clearIntroVideoFromStorage } from './utils/videoStorage';
 
 const invitationData = {
   bride: 'Saleha',
@@ -56,24 +55,53 @@ function Ornament() {
   );
 }
 
-function FloralCorners({ subtle = false }: { subtle?: boolean }) {
+function FloralCorners({
+  subtle = false,
+  bothSides = false,
+}: {
+  subtle?: boolean;
+  bothSides?: boolean;
+}) {
   return (
     <>
+      {/* Top Left Floral Corner */}
       <img
         src="/floral-corner.png"
-        alt=""
+        alt="Floral decoration top left"
         width={1024}
         height={1024}
         className={`floral-corner floral-corner-top ${subtle ? 'floral-subtle' : ''}`}
       />
+      {/* Top Right Floral Corner (flowers on the right side) */}
+      {bothSides && (
+        <img
+          src="/floral-corner.png"
+          alt="Floral decoration top right"
+          width={1024}
+          height={1024}
+          className={`floral-corner floral-corner-top-right ${subtle ? 'floral-subtle' : ''}`}
+        />
+      )}
+      {/* Bottom Right Floral Corner */}
       <img
         src="/floral-corner.png"
-        alt=""
+        alt="Floral decoration bottom right"
         loading="lazy"
         width={1024}
         height={1024}
         className={`floral-corner floral-corner-bottom ${subtle ? 'floral-subtle' : ''}`}
       />
+      {/* Bottom Left Floral Corner */}
+      {bothSides && (
+        <img
+          src="/floral-corner.png"
+          alt="Floral decoration bottom left"
+          loading="lazy"
+          width={1024}
+          height={1024}
+          className={`floral-corner floral-corner-bottom-left ${subtle ? 'floral-subtle' : ''}`}
+        />
+      )}
     </>
   );
 }
@@ -151,21 +179,79 @@ function CountdownTimer() {
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
-  const [videoSrc, setVideoSrc] = useState<string>(bundledIntroVideo || '/wedding-intro.mp4');
+  const [videoSrc, setVideoSrc] = useState<string | null>('/wedding-intro.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [customCardImage, setCustomCardImage] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('customCardDesign') || '/card-design.jpg';
+    } catch {
+      return '/card-design.jpg';
+    }
+  });
+  const [cardImageFailed, setCardImageFailed] = useState(false);
 
   const petalIndices = useMemo(() => Array.from({ length: 11 }, (_, i) => i), []);
 
   const embedMapUrl = `https://www.google.com/maps?q=${invitationData.mapCenter.latitude},${invitationData.mapCenter.longitude}&z=16&output=embed`;
 
   useEffect(() => {
-    // Check IndexedDB storage in case user updated video locally
-    getIntroVideoFromStorage().then((blob) => {
-      if (blob) {
-        setVideoSrc(URL.createObjectURL(blob));
-      }
-    });
+    // Purge any stale legacy video cached in browser IndexedDB
+    clearIntroVideoFromStorage().catch(() => {});
+
+    // Check if an intro video is saved on the server
+    fetch('/api/video-info')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.hasVideo && data.videoUrl) {
+          setVideoSrc(data.videoUrl);
+        }
+      })
+      .catch(() => {});
+
+    // Check if a custom card image design is saved on the server
+    fetch('/api/card-image-info')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.hasCardImage && data.imageUrl) {
+          setCustomCardImage(data.imageUrl);
+          setCardImageFailed(false);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const uploadCardImageFile = async (file: File) => {
+    if (!file) return;
+
+    // Fast local preview via FileReader
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) {
+        setCustomCardImage(dataUrl);
+        setCardImageFailed(false);
+        try {
+          localStorage.setItem('customCardDesign', dataUrl);
+        } catch {}
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Persist to server so it is immediately visible to everyone
+    try {
+      const res = await fetch('/api/upload-card-image', {
+        method: 'POST',
+        body: file,
+      });
+      const data = await res.json();
+      if (data?.imageUrl) {
+        setCustomCardImage(data.imageUrl);
+        setCardImageFailed(false);
+      }
+    } catch (err) {
+      console.error('Failed to upload card design:', err);
+    }
+  };
 
   const handleOpenClick = () => {
     if (isOpening || isVideoPlaying) return;
@@ -175,7 +261,7 @@ export default function App() {
       // Synchronously trigger video playback so mobile Safari/iOS maintains user gesture context
       setIsVideoPlaying(true);
     } else {
-      // Standard reveal if no video is present
+      // Standard reveal if no video is present - smooth 3D envelope opening
       window.setTimeout(() => {
         setIsOpen(true);
         setIsOpening(false);
@@ -208,11 +294,6 @@ export default function App() {
     window.scrollTo({ top: 0, left: 0 });
   };
 
-  const handleTestPlay = () => {
-    setIsOpening(true);
-    setIsVideoPlaying(true);
-  };
-
   const handleResealEnvelope = () => {
     setIsOpen(false);
     setIsOpening(false);
@@ -243,7 +324,7 @@ export default function App() {
       {!isOpen && (
         <section className="opening-screen" aria-label="Wedding invitation cover">
           <LivingAtmosphere />
-          <FloralCorners subtle />
+          <FloralCorners bothSides />
 
           <div className="envelope-stage">
             <div className="envelope-title">
@@ -317,76 +398,102 @@ export default function App() {
           </div>
         )}
 
-        <article className="invitation-card">
-          <FloralCorners />
-          <img
-            className="card-lanterns"
-            src="/lanterns.png"
-            alt=""
-            loading="lazy"
-            width={1024}
-            height={1024}
-          />
+        <article className={`invitation-card ${!cardImageFailed && customCardImage ? 'with-card-image' : ''}`}>
+          {/* Card Presentation: wedding invitation design with royal scratch animation on the date section below In Sha Allah Nikah */}
+          {!cardImageFailed && customCardImage ? (
+            <div
+              className="custom-card-wrapper relative w-full overflow-hidden select-none mb-6 sm:mb-8"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  uploadCardImageFile(file);
+                }
+              }}
+            >
+              <img
+                src={customCardImage}
+                alt="Nikah Invitation - Saleha & Owesh"
+                className="w-full h-auto block select-none pointer-events-none"
+                loading="eager"
+                onError={() => setCardImageFailed(true)}
+              />
 
-          {/* Header blessing & host */}
-          <header className="invitation-header reveal-section">
-            <div className="card-bismillah-arabic" lang="ar" dir="rtl">
-              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
-            </div>
-            <p className="blessing">
-              In the name of ‘ALLAH’
-              <br />
-              <small>the most beneficent and the most merciful</small>
-            </p>
-            <p className="request">
-              <strong className="host-name">{invitationData.host}</strong>
-              <br />
-              requests the honour of your presence at the
-              <br />
-              Nikah ceremony of his Granddaughter
-            </p>
-          </header>
-
-          {/* Bride and Groom Names */}
-          <section className="names reveal-section" aria-label="Bride and groom">
-            <h1>{invitationData.bride}</h1>
-            <p>( D/o. {invitationData.brideParent} )</p>
-            <span className="weds-seal">Weds</span>
-            <h1>{invitationData.groom}</h1>
-            <p>( S/o. {invitationData.groomParent} )</p>
-            <h2>
-              <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
-              <span className="tracking-wide">In Sha Allah Nikah</span>
-              <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
-            </h2>
-          </section>
-
-          {/* Date & Timings with Scratch to Reveal Animation */}
-          <section className="date-block reveal-section" aria-label="Wedding date">
-            <DateScratchCard>
-              <div className="py-2 px-1 sm:px-3">
-                <p className="day">{invitationData.day}</p>
-                <div className="date-row">
-                  <span className="date-month">NOVEMBER</span>
-                  <div className="date-day-num">
-                    <span className="num">20</span>
-                    <sup className="ordinal">TH</sup>
-                  </div>
-                  <span className="date-year">2026</span>
-                </div>
-                <p className="hijri">({invitationData.hijriDate})</p>
-
-                <Ornament />
-
-                <p>
-                  <b>Nikah :</b> {invitationData.nikah}
-                </p>
-                <p>
-                  <b>Dinner :</b> {invitationData.dinner}
-                </p>
+              {/* Interactive Scratch Card directly on the image below In Sha Allah Nikah covering Friday and date */}
+              <div
+                className="absolute z-20 pointer-events-auto rounded-xl sm:rounded-2xl"
+                style={{
+                  top: '70.2%',
+                  left: '5.5%',
+                  width: '89%',
+                  height: '26.8%',
+                }}
+              >
+                <NikahScratchAnimation />
               </div>
-            </DateScratchCard>
-          </section>
+            </div>
+          ) : (
+            <>
+              {/* Header blessing & host */}
+              <header className="invitation-header reveal-section">
+                <div className="card-bismillah-arabic" lang="ar" dir="rtl">
+                  بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+                </div>
+                <p className="blessing">
+                  In the name of ‘ALLAH’
+                  <br />
+                  <small>the most beneficent and the most merciful</small>
+                </p>
+                <p className="request">
+                  <strong className="host-name">{invitationData.host}</strong>
+                  <br />
+                  requests the honour of your presence at the
+                  <br />
+                  Nikah ceremony of his Granddaughter
+                </p>
+              </header>
+
+              {/* Bride and Groom Names */}
+              <section className="names reveal-section" aria-label="Bride and groom">
+                <h1>{invitationData.bride}</h1>
+                <p>( D/o. {invitationData.brideParent} )</p>
+                <span className="weds-seal">Weds</span>
+                <h1>{invitationData.groom}</h1>
+                <p>( S/o. {invitationData.groomParent} )</p>
+                <h2>
+                  <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
+                  <span className="tracking-wide">In Sha Allah Nikah</span>
+                  <span className="text-[0.7em] leading-none opacity-80" aria-hidden="true">✿</span>
+                </h2>
+              </section>
+
+              {/* Date & Timings */}
+              <section className="date-block reveal-section" aria-label="Wedding date">
+                <div className="py-2 px-1 sm:px-3">
+                  <p className="day">{invitationData.day}</p>
+                  <div className="date-row">
+                    <span className="date-month">NOVEMBER</span>
+                    <div className="date-day-num">
+                      <span className="num">20</span>
+                      <sup className="ordinal">TH</sup>
+                    </div>
+                    <span className="date-year">2026</span>
+                  </div>
+                  <p className="hijri">({invitationData.hijriDate})</p>
+
+                  <Ornament />
+
+                  <p>
+                    <b>Nikah :</b> {invitationData.nikah}
+                  </p>
+                  <p>
+                    <b>Dinner :</b> {invitationData.dinner}
+                  </p>
+                </div>
+              </section>
+            </>
+          )}
 
           {/* Venue & Map */}
           <section className="venue reveal-section">
@@ -443,7 +550,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleResealEnvelope}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--gold)]/50 text-[oklch(35%_0.072_178)] hover:bg-[oklch(35%_0.072_178)]/10 text-xs font-serif font-semibold tracking-wider uppercase transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--gold)]/50 text-[oklch(35%_0.072_178)] hover:bg-[oklch(35%_0.072_178)]/10 text-xs font-serif font-semibold tracking-wider uppercase transition-all active:scale-95 cursor-pointer"
               >
                 <RotateCcw className="size-3.5" />
                 <span>Re-close Envelope</span>

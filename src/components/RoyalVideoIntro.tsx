@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import bundledPoster from '../assets/video-poster.webp';
 
 interface RoyalVideoIntroProps {
   videoSrc: string;
@@ -11,15 +10,17 @@ interface RoyalVideoIntroProps {
 
 export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
   videoSrc,
-  posterSrc = bundledPoster || '/video-poster.webp',
+  posterSrc = '/video-poster.webp',
   onFinish,
   onPreFinish,
   onErrorFallback,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [currentSrc, setCurrentSrc] = useState(videoSrc);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
+  const [posterLoaded, setPosterLoaded] = useState(false);
   const hasTriggeredFinish = useRef(false);
 
   const triggerCompletion = () => {
@@ -51,27 +52,37 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
     if (playPromise !== undefined) {
       playPromise.catch((err) => {
         console.warn('Autoplay error:', err);
-        onErrorFallback();
+        // Retry with public path if bundled failed
+        if (currentSrc !== '/wedding-intro.mp4') {
+          setCurrentSrc('/wedding-intro.mp4');
+        } else {
+          onErrorFallback();
+        }
       });
     }
 
     return () => cancelAnimationFrame(raf);
-  }, [onErrorFallback]);
+  }, [onErrorFallback, currentSrc]);
+
+  const handleVideoError = () => {
+    if (currentSrc !== '/wedding-intro.mp4') {
+      console.warn('Switching to fallback video path /wedding-intro.mp4');
+      setCurrentSrc('/wedding-intro.mp4');
+    } else {
+      console.error('All video sources failed, proceeding to invitation fallback');
+      onErrorFallback();
+    }
+  };
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Mark playing once video timestamp moves forward
-    if (!isPlaying && video.currentTime > 0.04) {
-      setIsPlaying(true);
-    }
-
     const current = video.currentTime;
     const total = video.duration;
 
-    // Trigger transition when within the last 0.75 seconds of the video
-    if (total > 1.5 && current >= total - 0.75) {
+    // Trigger transition within the last 0.6 seconds of the video for a seamless dissolve
+    if (total > 1.5 && current >= total - 0.6) {
       triggerCompletion();
     }
   };
@@ -84,7 +95,7 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
           videoRef.current.play().catch(() => {});
         }
       }}
-      className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#18130c] transition-all duration-700 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,_#2b1d0e_0%,_#140d07_60%,_#090604_100%)] transition-all duration-700 ${
         isEnding
           ? 'opacity-0 scale-105 pointer-events-none'
           : hasEntered
@@ -93,14 +104,6 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
       }`}
       style={{ isolation: 'isolate' }}
     >
-      {/* Warm ambient blurred glow of the poster to prevent any black borders */}
-      <img
-        src={posterSrc}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover blur-3xl scale-125 opacity-40 pointer-events-none"
-      />
-
       {/* Radiant golden light burst on opening */}
       <div
         className={`absolute inset-0 pointer-events-none transition-opacity duration-700 bg-radial from-[#fff4d1]/60 via-[#d4af37]/20 to-transparent ${
@@ -110,11 +113,11 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
 
       {/* Main Video & Seamless Poster Layer */}
       <div className="relative w-full h-full flex items-center justify-center">
-        {/* Main Video Element */}
+        {/* Main Video Element with hardware acceleration */}
         <video
           ref={videoRef}
-          src={videoSrc}
-          poster={posterSrc}
+          src={currentSrc}
+          poster={posterLoaded ? posterSrc : undefined}
           playsInline
           webkit-playsinline="true"
           x5-playsinline="true"
@@ -124,11 +127,9 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
           onPlaying={() => setIsPlaying(true)}
           onTimeUpdate={handleTimeUpdate}
           onEnded={triggerCompletion}
-          onError={() => {
-            console.error('Video error event triggered for source:', videoSrc);
-            onErrorFallback();
-          }}
+          onError={handleVideoError}
           className="w-full h-full object-cover sm:object-contain"
+          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
         />
 
         {/* 
@@ -139,8 +140,10 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
         <img
           src={posterSrc}
           alt="Saleha & Owesh Wedding Intro"
+          onLoad={() => setPosterLoaded(true)}
+          onError={() => setPosterLoaded(false)}
           className={`absolute inset-0 w-full h-full object-cover sm:object-contain transition-opacity duration-300 pointer-events-none ${
-            isPlaying ? 'opacity-0' : 'opacity-100'
+            isPlaying || !posterLoaded ? 'opacity-0' : 'opacity-100'
           }`}
         />
       </div>
