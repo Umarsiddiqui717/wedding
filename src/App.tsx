@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ChevronDown, ExternalLink, RotateCcw } from 'lucide-react';
 import { NikahScratchAnimation } from './components/NikahScratchAnimation';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
 import { clearIntroVideoFromStorage } from './utils/videoStorage';
-import defaultCardImage from './assets/card-design.jpg';
+import defaultCardImage from './assets/card-design.webp';
 import defaultCardPng from './assets/card-design.png';
 import floralCornerImg from './assets/floral-corner.webp';
 
@@ -251,7 +251,8 @@ export default function App() {
         return res.json();
       })
       .then((data) => {
-        if (data && data.hasVideo && data.videoUrl) {
+        // Only update if custom video URL differs from local standard
+        if (data && data.hasVideo && data.videoUrl && !data.videoUrl.startsWith('/wedding-intro.mp4')) {
           setVideoSrc(data.videoUrl);
         }
       })
@@ -327,62 +328,59 @@ export default function App() {
     }
   };
 
-  const handleOpenClick = () => {
-    if (isOpening || isVideoPlaying) return;
+  const handleOpenClick = useCallback(() => {
+    if (isOpening || isOpen || isVideoPlaying) return;
+
+    // Immediately trigger tactile 3D envelope opening animation
+    setIsOpening(true);
 
     if (videoSrc) {
-      setIsVideoPlaying(true);
+      // Allow envelope wax seal pop and 3D flap unfold for 350ms before video blooms
+      window.setTimeout(() => {
+        setIsVideoPlaying(true);
+      }, 350);
     } else {
-      setIsOpening(true);
       window.setTimeout(() => {
         setIsOpen(true);
         setIsOpening(false);
-        window.scrollTo({ top: 0, left: 0 });
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         window.dispatchEvent(new Event('resize'));
         window.dispatchEvent(new Event('nikah-redraw'));
-      }, 1400);
+      }, 1200);
     }
-  };
+  }, [isOpening, isOpen, isVideoPlaying, videoSrc]);
 
-  // Called right as video starts dissolving on the last second
-  // Sets card open directly so it's ready immediately beneath the dissolving video
-  const handleVideoPreFinish = () => {
+  // Called right as video starts dissolving: mounts card underneath
+  const handleVideoPreFinish = useCallback(() => {
     setIsOpen(true);
+  }, []);
+
+  // Called when video overlay is fully faded out and unmounted
+  const handleVideoFinish = useCallback(() => {
+    setIsVideoPlaying(false);
     setIsOpening(false);
-    window.scrollTo({ top: 0, left: 0 });
+    setIsOpen(true);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     window.dispatchEvent(new Event('resize'));
     window.dispatchEvent(new Event('nikah-redraw'));
-  };
+  }, []);
 
-  // Called when video overlay is fully unmounted
-  const handleVideoFinish = () => {
+  // Fallback if video fails to play on device
+  const handleVideoFallback = useCallback(() => {
     setIsVideoPlaying(false);
     setIsOpen(true);
     setIsOpening(false);
-    window.scrollTo({ top: 0, left: 0 });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     window.dispatchEvent(new Event('resize'));
     window.dispatchEvent(new Event('nikah-redraw'));
-  };
+  }, []);
 
-  // Fallback if video fails to play
-  const handleVideoFallback = () => {
-    setIsVideoPlaying(false);
-    setIsOpening(true);
-    window.setTimeout(() => {
-      setIsOpen(true);
-      setIsOpening(false);
-      window.scrollTo({ top: 0, left: 0 });
-      window.dispatchEvent(new Event('resize'));
-      window.dispatchEvent(new Event('nikah-redraw'));
-    }, 400);
-  };
-
-  const handleResealEnvelope = () => {
+  const handleResealEnvelope = useCallback(() => {
     setIsOpen(false);
     setIsOpening(false);
     setIsVideoPlaying(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
   return (
     <main
