@@ -224,6 +224,108 @@ async function startServer() {
     res.status(404).send('Card image not found');
   });
 
+  // Explicit route to serve /nasheed.mp3 and /nasheed.mpeg reliably
+  const serveAudioFile = (_req: express.Request, res: express.Response) => {
+    const candidateFiles = [
+      path.join(publicDir, 'nasheed.mp3'),
+      path.join(publicDir, 'nasheed.mpeg'),
+      path.join(__dirname, 'dist', 'nasheed.mp3'),
+      path.join(__dirname, 'dist', 'nasheed.mpeg'),
+      path.join(__dirname, 'src', 'assets', 'nasheed.mp3'),
+    ];
+    for (const f of candidateFiles) {
+      if (fs.existsSync(f)) {
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Accept-Ranges', 'bytes');
+        return res.sendFile(f);
+      }
+    }
+    res.status(404).send('Nasheed audio not found');
+  };
+
+  app.get('/nasheed.mp3', serveAudioFile);
+  app.get('/nasheed.mpeg', serveAudioFile);
+
+  // Audio info endpoint
+  app.get('/api/audio-info', (_req, res) => {
+    const audioPath = path.join(publicDir, 'nasheed.mp3');
+    const hasAudio = fs.existsSync(audioPath);
+    let updatedAt = Date.now();
+    if (hasAudio) {
+      try {
+        updatedAt = fs.statSync(audioPath).mtimeMs;
+      } catch (e) {
+        console.error('Failed to stat audio:', e);
+      }
+    }
+    res.json({
+      hasAudio,
+      audioUrl: hasAudio ? `/nasheed.mp3?t=${updatedAt}` : null,
+    });
+  });
+
+  // POST upload audio endpoint (with ffmpeg transcoding for any WhatsApp/MPEG/Opus/AAC audio format)
+  app.post('/api/upload-audio', (req, res) => {
+    const distDir = path.resolve(__dirname, 'dist');
+    const assetsDir = path.resolve(__dirname, 'src', 'assets');
+    const publicTarget = path.join(publicDir, 'nasheed.mp3');
+    const publicMpeg = path.join(publicDir, 'nasheed.mpeg');
+    const distTarget = path.join(distDir, 'nasheed.mp3');
+    const tempUploadPath = path.join(publicDir, `temp-audio-${Date.now()}`);
+    const writeStream = fs.createWriteStream(tempUploadPath);
+
+    req.pipe(writeStream);
+
+    writeStream.on('finish', () => {
+      console.log('Audio upload received, transcoding to pristine web-compatible MP3/MPEG with ffmpeg...');
+      
+      // Use ffmpeg to extract/transcode audio stream to standard 192kbps 44.1kHz MP3
+      const transcodeCmd = `ffmpeg -y -i "${tempUploadPath}" -vn -c:a libmp3lame -b:a 192k -ar 44100 "${publicTarget}" && rm -f "${tempUploadPath}"`;
+
+      exec(transcodeCmd, (ffmpegErr) => {
+        if (ffmpegErr) {
+          console.warn('ffmpeg transcode failed, attempting direct move:', ffmpegErr);
+          try {
+            fs.renameSync(tempUploadPath, publicTarget);
+          } catch (e) {
+            console.error('Rename failed:', e);
+          }
+        }
+
+        try {
+          fs.copyFileSync(publicTarget, publicMpeg);
+        } catch {}
+
+        if (fs.existsSync(assetsDir)) {
+          try {
+            fs.copyFileSync(publicTarget, path.join(assetsDir, 'nasheed.mp3'));
+          } catch {}
+        }
+
+        if (fs.existsSync(distDir)) {
+          try {
+            fs.copyFileSync(publicTarget, distTarget);
+            fs.copyFileSync(publicTarget, path.join(distDir, 'nasheed.mpeg'));
+          } catch (e) {
+            console.warn('Failed to copy audio to dist:', e);
+          }
+        }
+
+        const updatedAt = Date.now();
+        res.json({
+          success: true,
+          audioUrl: `/nasheed.mp3?t=${updatedAt}`,
+          message: 'Audio uploaded, transcoded and set as default website audio!',
+        });
+      });
+    });
+
+    writeStream.on('error', (err) => {
+      console.error('Audio write error:', err);
+      res.status(500).json({ error: 'Failed to write audio' });
+    });
+  });
+
   // Legacy route compatibility
   app.get('/api/has-intro-video', (_req, res) => {
     const publicFile = path.resolve(__dirname, 'public', 'wedding-intro.mp4');

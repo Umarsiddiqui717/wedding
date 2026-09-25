@@ -38,6 +38,20 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
+  for = "/*.mp3"
+  [headers.values]
+    Content-Type = "audio/mpeg"
+    Accept-Ranges = "bytes"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.mpeg"
+  [headers.values]
+    Content-Type = "audio/mpeg"
+    Accept-Ranges = "bytes"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"

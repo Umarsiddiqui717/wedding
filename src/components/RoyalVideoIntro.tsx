@@ -111,6 +111,7 @@ export const RoyalVideoIntro: React.FC<RoyalVideoIntroProps> = ({
         }`}
       />
 
+
       {/* Main Video & Seamless Poster Layer */}
       <div className="relative w-full h-full flex items-center justify-center">
         {/* Main Video Element with hardware acceleration */}

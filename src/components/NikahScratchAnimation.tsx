@@ -69,13 +69,15 @@ export const NikahScratchAnimation: React.FC<NikahScratchAnimationProps> = ({
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = container.getBoundingClientRect();
-    const width = Math.max(Math.floor(rect.width), 100);
-    const height = Math.max(Math.floor(rect.height), 60);
+    const width = Math.floor(rect.width || container.clientWidth);
+    const height = Math.floor(rect.height || container.clientHeight);
 
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    if (width <= 15 || height <= 15) return;
+
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
@@ -400,8 +402,22 @@ export const NikahScratchAnimation: React.FC<NikahScratchAnimationProps> = ({
     return () => clearInterval(timer);
   }, [particles.length]);
 
-  // Initial mount: Draw foil & handle window resize
+  // Initial mount & responsive resize observation
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Observe container size changes (envelope open, image load, orientation change)
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 20 && height > 20 && !isRevealedRef.current) {
+          drawFoil();
+        }
+      }
+    });
+
+    observer.observe(container);
     drawFoil();
 
     const handleResize = () => {
@@ -409,8 +425,17 @@ export const NikahScratchAnimation: React.FC<NikahScratchAnimationProps> = ({
         drawFoil();
       }
     };
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('nikah-redraw', handleResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('nikah-redraw', handleResize);
+    };
   }, [drawFoil]);
 
   return (
@@ -423,18 +448,18 @@ export const NikahScratchAnimation: React.FC<NikahScratchAnimationProps> = ({
     >
       {/* 
         Canvas Foil Container:
-        Rounded edges with subtle gold border before scratching, completely borderless when scratched
+        Solid shimmering gold background ensures date is 100% hidden even before canvas paints!
       */}
       <div
-        className={`absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-500 ${
+        className={`absolute inset-0 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-700 ${
           isRevealed
-            ? 'border-0 border-transparent shadow-none pointer-events-none'
-            : 'border border-amber-300/40 shadow-sm pointer-events-auto'
+            ? 'opacity-0 pointer-events-none border-0'
+            : 'opacity-100 border border-amber-300/60 shadow-md pointer-events-auto bg-gradient-to-br from-[#fbf3de] via-[#d4af37] to-[#c59a2f]'
         }`}
       >
         {/* Shimmer sweep effect across the gold foil */}
         {!isRevealed && (
-          <div className="absolute inset-0 pointer-events-none z-15 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 animate-[shimmer_3s_infinite]" />
+          <div className="absolute inset-0 pointer-events-none z-15 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-[shimmer_3s_infinite]" />
         )}
 
         {/* 
@@ -447,9 +472,7 @@ export const NikahScratchAnimation: React.FC<NikahScratchAnimationProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          className={`absolute inset-0 w-full h-full cursor-pointer z-10 transition-opacity duration-800 ease-out rounded-xl sm:rounded-2xl ${
-            isRevealed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}
+          className="absolute inset-0 w-full h-full cursor-pointer z-10 rounded-xl sm:rounded-2xl"
           style={{ touchAction: 'none' }}
         />
       </div>

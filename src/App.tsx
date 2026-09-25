@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ExternalLink, Sparkles, RotateCcw } from 'lucide-react';
+import { ChevronDown, ExternalLink, RotateCcw } from 'lucide-react';
 import { NikahScratchAnimation } from './components/NikahScratchAnimation';
 import { RoyalVideoIntro } from './components/RoyalVideoIntro';
 import { clearIntroVideoFromStorage } from './utils/videoStorage';
 import defaultCardImage from './assets/card-design.jpg';
 import defaultCardPng from './assets/card-design.png';
-import floralCornerImg from './assets/floral-corner.png';
+import floralCornerImg from './assets/floral-corner.webp';
 
 const invitationData = {
   bride: 'Saleha',
@@ -30,9 +30,9 @@ const invitationData = {
   countdownTarget: '2026-11-20T00:00:00+05:30',
   hosts: [
     'Mr. Abdullah Siddiqui',
-    'Abdul Rub Siddiqui',
-    'Amanullah Siddiqui',
-    'Mohammed Uzair Khan',
+    'Mr. Abdul Rub Siddiqui',
+    'Mr. Amanullah Siddiqui',
+    'Mr. Mohammed Uzair Khan',
     'Relatives & Friends.',
   ],
 };
@@ -73,6 +73,9 @@ function FloralCorners({
         alt="Floral decoration top left"
         width={1024}
         height={1024}
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
         className={`floral-corner floral-corner-top ${subtle ? 'floral-subtle' : ''}`}
       />
       {/* Top Right Floral Corner (flowers on the right side) */}
@@ -82,6 +85,9 @@ function FloralCorners({
           alt="Floral decoration top right"
           width={1024}
           height={1024}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           className={`floral-corner floral-corner-top-right ${subtle ? 'floral-subtle' : ''}`}
         />
       )}
@@ -89,7 +95,9 @@ function FloralCorners({
       <img
         src={floralCornerImg}
         alt="Floral decoration bottom right"
-        loading="lazy"
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
         width={1024}
         height={1024}
         className={`floral-corner floral-corner-bottom ${subtle ? 'floral-subtle' : ''}`}
@@ -99,7 +107,9 @@ function FloralCorners({
         <img
           src={floralCornerImg}
           alt="Floral decoration bottom left"
-          loading="lazy"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           width={1024}
           height={1024}
           className={`floral-corner floral-corner-bottom-left ${subtle ? 'floral-subtle' : ''}`}
@@ -184,6 +194,8 @@ export default function App() {
   const [isOpening, setIsOpening] = useState(false);
   const [videoSrc, setVideoSrc] = useState<string | null>('/wedding-intro.mp4');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
   const [customCardImage, setCustomCardImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('customCardDesign');
@@ -220,9 +232,12 @@ export default function App() {
   const embedMapUrl = `https://www.google.com/maps?q=${invitationData.mapCenter.latitude},${invitationData.mapCenter.longitude}&z=16&output=embed`;
 
   useEffect(() => {
-    // Eagerly preload image in browser memory so it opens instantly
-    const preload = new Image();
-    preload.src = defaultCardImage;
+    // Eagerly preload critical image assets in browser memory so they render synchronously
+    const preloadCard = new Image();
+    preloadCard.src = defaultCardImage;
+
+    const preloadFloral = new Image();
+    preloadFloral.src = floralCornerImg;
 
     // Purge any stale legacy video cached in browser IndexedDB
     clearIntroVideoFromStorage().catch(() => {});
@@ -291,20 +306,41 @@ export default function App() {
     }
   };
 
+  const handleGlobalDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isDraggingOver) setIsDraggingOver(true);
+  };
+
+  const handleGlobalDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDraggingOver(false);
+  };
+
+  const handleGlobalDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+      uploadCardImageFile(file);
+    }
+  };
+
   const handleOpenClick = () => {
     if (isOpening || isVideoPlaying) return;
-    setIsOpening(true);
 
     if (videoSrc) {
-      // Synchronously trigger video playback so mobile Safari/iOS maintains user gesture context
       setIsVideoPlaying(true);
     } else {
-      // Standard reveal if no video is present - smooth 3D envelope opening
+      setIsOpening(true);
       window.setTimeout(() => {
         setIsOpen(true);
         setIsOpening(false);
         window.scrollTo({ top: 0, left: 0 });
-      }, 1600);
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('nikah-redraw'));
+      }, 1400);
     }
   };
 
@@ -314,6 +350,8 @@ export default function App() {
     setIsOpen(true);
     setIsOpening(false);
     window.scrollTo({ top: 0, left: 0 });
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('nikah-redraw'));
   };
 
   // Called when video overlay is fully unmounted
@@ -322,14 +360,21 @@ export default function App() {
     setIsOpen(true);
     setIsOpening(false);
     window.scrollTo({ top: 0, left: 0 });
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('nikah-redraw'));
   };
 
   // Fallback if video fails to play
   const handleVideoFallback = () => {
     setIsVideoPlaying(false);
-    setIsOpen(true);
-    setIsOpening(false);
-    window.scrollTo({ top: 0, left: 0 });
+    setIsOpening(true);
+    window.setTimeout(() => {
+      setIsOpen(true);
+      setIsOpening(false);
+      window.scrollTo({ top: 0, left: 0 });
+      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event('nikah-redraw'));
+    }, 400);
   };
 
   const handleResealEnvelope = () => {
@@ -342,7 +387,10 @@ export default function App() {
   return (
     <main
       id="invitation-app-root"
-      className={`invitation-site ${isOpening ? 'is-opening' : ''} ${isOpen ? 'is-open' : ''}`}
+      className={`invitation-site ${isOpening ? 'is-opening' : ''} ${isOpen ? 'is-open' : ''} relative`}
+      onDragOver={handleGlobalDragOver}
+      onDragLeave={handleGlobalDragLeave}
+      onDrop={handleGlobalDrop}
     >
       {/* Royal Gate Video Transition */}
       {isVideoPlaying && videoSrc && (
@@ -455,12 +503,18 @@ export default function App() {
                 alt="Nikah Invitation - Saleha & Owesh"
                 className="w-full h-auto block select-none pointer-events-none"
                 loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                onLoad={() => {
+                  window.dispatchEvent(new Event('nikah-redraw'));
+                  window.dispatchEvent(new Event('resize'));
+                }}
                 onError={handleCardImageError}
               />
 
               {/* Interactive Scratch Card directly on the image below In Sha Allah Nikah covering Friday and date */}
               <div
-                className="absolute z-20 pointer-events-auto rounded-xl sm:rounded-2xl"
+                className="absolute z-20 pointer-events-auto rounded-xl sm:rounded-2xl overflow-hidden shadow-sm"
                 style={{
                   top: '70.2%',
                   left: '5.5%',
